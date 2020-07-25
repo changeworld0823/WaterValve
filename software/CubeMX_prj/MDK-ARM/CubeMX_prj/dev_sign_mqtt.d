@@ -1,0 +1,14 @@
+cubemx_prj\dev_sign_mqtt.o: ..\LinkSDK\dev_sign\dev_sign_mqtt.c
+cubemx_prj\dev_sign_mqtt.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+cubemx_prj\dev_sign_mqtt.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+cubemx_prj\dev_sign_mqtt.o: ..\LinkSDK\infra\infra_defs.h
+cubemx_prj\dev_sign_mqtt.o: ..\LinkSDK\infra\infra_types.h
+cubemx_prj\dev_sign_mqtt.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+cubemx_prj\dev_sign_mqtt.o: ..\LinkSDK\infra\infra_config.h
+cubemx_prj\dev_sign_mqtt.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+cubemx_prj\dev_sign_mqtt.o: ..\LinkSDK\infra\infra_sha256.h
+cubemx_prj\dev_sign_mqtt.o: ..\LinkSDK\dev_sign\dev_sign_api.h
+cubemx_prj\dev_sign_mqtt.o: ..\LinkSDK\dev_sign\dev_sign_internal.h
+cubemx_prj\dev_sign_mqtt.o: ..\LinkSDK\dev_sign\dev_sign_api.h
+cubemx_prj\dev_sign_mqtt.o: ..\LinkSDK\dev_sign\dev_sign_wrapper.h
+cubemx_prj\dev_sign_mqtt.o: ..\LinkSDK\dev_sign\dev_sign_wrapper.h
