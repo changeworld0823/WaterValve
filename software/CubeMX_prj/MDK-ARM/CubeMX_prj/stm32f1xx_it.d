@@ -37,3 +37,4 @@ cubemx_prj\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/R
 cubemx_prj\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
 cubemx_prj\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
 cubemx_prj\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h
+cubemx_prj\stm32f1xx_it.o: ../Inc/usart.h

@@ -33,7 +33,8 @@
 extern UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN Private defines */
-
+#define RX_BUFFER_SIZE		256
+extern uint8_t aRxMessage[RX_BUFFER_SIZE];
 /* USER CODE END Private defines */
 
 void MX_USART1_UART_Init(void);

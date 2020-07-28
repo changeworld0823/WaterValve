@@ -26,7 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
-
+#include "usart.h"
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
 
@@ -54,7 +54,7 @@
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+extern uint8_t aRxMessage[RX_BUFFER_SIZE];
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -188,7 +188,7 @@ void DMA1_Channel5_IRQHandler(void)
   /* USER CODE END DMA1_Channel5_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart1_rx);
   /* USER CODE BEGIN DMA1_Channel5_IRQn 1 */
-
+	HAL_UART_Receive_IT(&huart1,aRxMessage,RX_BUFFER_SIZE);
   /* USER CODE END DMA1_Channel5_IRQn 1 */
 }
 

@@ -60,7 +60,7 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t aTxMessage[] = "\r\nhello world\r\n";
+uint8_t aTxMessage[] = "AT\r\n";
 /* USER CODE END 0 */
 
 /**
@@ -109,7 +109,8 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+		HAL_UART_Transmit_DMA(&huart1, (uint8_t *)aTxMessage, sizeof(aTxMessage));
+    HAL_Delay(1000);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
