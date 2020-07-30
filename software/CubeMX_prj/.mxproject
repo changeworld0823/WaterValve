@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=C:/Users/meiko/Desktop/CubeMX_prj/Inc
+HeaderPath=E:/githubcode/WaterValve/software/CubeMX_prj/Inc
 HeaderFiles=gpio.h;usart.h;stm32f1xx_it.h;stm32f1xx_hal_conf.h;main.h;tim.h;dma.h;FreeRTOSConfig.h;
-SourcePath=C:/Users/meiko/Desktop/CubeMX_prj/Src
+SourcePath=E:/githubcode/WaterValve/software/CubeMX_prj/Src
 SourceFiles=gpio.c;usart.c;stm32f1xx_it.c;stm32f1xx_hal_msp.c;main.c;tim.c;dma.c;freertos.c;stm32f1xx_hal_timebase_tim.c;
 
 [PreviousLibFiles]

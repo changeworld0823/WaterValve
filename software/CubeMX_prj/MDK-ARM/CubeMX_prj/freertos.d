@@ -41,3 +41,4 @@ cubemx_prj\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/timers
 cubemx_prj\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h
 cubemx_prj\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h
 cubemx_prj\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h
+cubemx_prj\freertos.o: ../Inc/usart.h

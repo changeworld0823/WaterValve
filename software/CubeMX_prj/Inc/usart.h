@@ -33,14 +33,16 @@
 extern UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN Private defines */
-#define RX_BUFFER_SIZE		256
-extern uint8_t aRxMessage[RX_BUFFER_SIZE];
+#define RX_BUFFER_SIZE		255
+extern uint8_t RxDMABuf[RX_BUFFER_SIZE];
 /* USER CODE END Private defines */
 
 void MX_USART1_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+void UART_IDLE_Callback(UART_HandleTypeDef *huart); 
+uint8_t Uart_GetRxSize(UART_HandleTypeDef *huart, uint8_t *buf);
+uint8_t Uart_SendData(UART_HandleTypeDef *huart, uint8_t *buf, uint8_t Size);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

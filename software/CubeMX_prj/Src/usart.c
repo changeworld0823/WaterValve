@@ -21,7 +21,14 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
-uint8_t aRxMessage[256];
+#include <string.h>
+uint8_t RxDMABuf[RX_BUFFER_SIZE];
+volatile uint8_t DMA_Usart_RxSize = 0;
+volatile uint8_t recv_end_flag = 0;
+
+volatile uint8_t RxBuf_LOCK = 0;
+uint8_t RxBuf[RX_BUFFER_SIZE];
+volatile uint8_t RxBufSize = 0;
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart1;
@@ -45,7 +52,8 @@ void MX_USART1_UART_Init(void)
   {
     Error_Handler();
   }
-
+	__HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
+	HAL_UART_Receive_DMA(&huart1,RxDMABuf,RX_BUFFER_SIZE);
 }
 
 void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
@@ -147,7 +155,64 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 } 
 
 /* USER CODE BEGIN 1 */
+void UART_IDLE_Callback(UART_HandleTypeDef *huart)
+{
+	uint32_t temp;
+	if(__HAL_UART_GET_FLAG(huart, UART_FLAG_IDLE)!= RESET)
+	{
+		__HAL_UART_CLEAR_IDLEFLAG(huart);
+		temp = huart->Instance->SR;
+		temp = huart->Instance->DR;
+		temp = temp;
+		HAL_UART_DMAStop(huart);
+		if(huart->Instance == USART1)
+		{
+			DMA_Usart_RxSize = RX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);
+			if(DMA_Usart_RxSize > 1 && RxBuf_LOCK ==0)
+			{
+				memcpy(RxBuf + RxBufSize, RxDMABuf, DMA_Usart_RxSize);
+				RxBufSize += DMA_Usart_RxSize;
+			}
+			HAL_UART_Receive_DMA(&huart1, RxDMABuf, RX_BUFFER_SIZE);
+		}
+	}
+}
 
+uint8_t Uart_GetRxSize(UART_HandleTypeDef *huart, uint8_t *buf)
+{
+	uint8_t Size = 0;
+	if(huart->Instance == USART1)
+	{
+		RxBuf_LOCK = 1;
+		if(RxBufSize > 0)
+		{
+			Size = RxBufSize;
+			RxBuf[RxBufSize] = 0;
+			memcpy(buf, RxBuf, RxBufSize);
+			RxBufSize = 0;
+		}
+		RxBuf_LOCK = 0;
+	}
+	
+	return Size;
+}
+
+uint8_t Uart_SendData(UART_HandleTypeDef *huart, uint8_t *buf, uint8_t Size)
+{
+	static uint8_t DMA_TX_BUF[RX_BUFFER_SIZE] = {0};
+	
+	if(Size == 0)
+		return 0;
+	if(huart->Instance == USART1 && (huart->hdmatx->Instance->CNDTR == 0)
+		&& Size < RX_BUFFER_SIZE)
+	{
+		memcpy(DMA_TX_BUF, buf, Size);
+		HAL_UART_Transmit_DMA(&huart1, DMA_TX_BUF, Size);
+		return 1;
+	}
+	
+	return 0;
+}
 /* USER CODE END 1 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

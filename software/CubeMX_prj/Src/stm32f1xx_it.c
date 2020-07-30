@@ -25,8 +25,9 @@
 #include "task.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-/* USER CODE END Includes */
 #include "usart.h"
+/* USER CODE END Includes */
+
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
 
@@ -188,7 +189,7 @@ void DMA1_Channel5_IRQHandler(void)
   /* USER CODE END DMA1_Channel5_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart1_rx);
   /* USER CODE BEGIN DMA1_Channel5_IRQn 1 */
-	HAL_UART_Receive_IT(&huart1,aRxMessage,RX_BUFFER_SIZE);
+	
   /* USER CODE END DMA1_Channel5_IRQn 1 */
 }
 
@@ -230,7 +231,7 @@ void USART1_IRQHandler(void)
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
-
+	UART_IDLE_Callback(&huart1);
   /* USER CODE END USART1_IRQn 1 */
 }
 
