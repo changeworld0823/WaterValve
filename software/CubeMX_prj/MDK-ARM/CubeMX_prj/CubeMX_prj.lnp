@@ -9,6 +9,7 @@
 "cubemx_prj\stm32f1xx_it.o"
 "cubemx_prj\stm32f1xx_hal_msp.o"
 "cubemx_prj\stm32f1xx_hal_timebase_tim.o"
+"cubemx_prj\wh_lte.o"
 "cubemx_prj\stm32f1xx_hal_gpio_ex.o"
 "cubemx_prj\stm32f1xx_hal.o"
 "cubemx_prj\stm32f1xx_hal_rcc.o"

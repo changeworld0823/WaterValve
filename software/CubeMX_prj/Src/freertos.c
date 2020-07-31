@@ -125,7 +125,7 @@ void StartDefaultTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-		HAL_UART_Transmit_DMA(&huart1, (uint8_t *)aTxMessage, sizeof(aTxMessage));
+		Uart_SendData(&huart1, (uint8_t *)aTxMessage, sizeof(aTxMessage));
     osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */

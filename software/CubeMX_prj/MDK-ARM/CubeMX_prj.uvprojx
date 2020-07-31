@@ -471,6 +471,11 @@
               <FileType>1</FileType>
               <FilePath>../Src/stm32f1xx_hal_timebase_tim.c</FilePath>
             </File>
+            <File>
+              <FileName>wh_lte.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\wh_lte.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -104,7 +104,7 @@ I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h)(0x5F12C2E8)
 I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h)(0x5F12C2E8)
 I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h)(0x5F12C2E8)
 I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h)(0x5F12C2E8)
-F (../Src/freertos.c)(0x5F202EE2)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I../Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -I..\LinkSDK -I..\LinkSDK\atm -I..\LinkSDK\dev_model -I..\LinkSDK\dev_sign -I..\LinkSDK\infra -I..\LinkSDK\mqtt -I..\LinkSDK\wrappers -I..\LinkSDK\wrappers\external_libs -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3-I E:\githubcode\WaterValve\software\CubeMX_prj\MDK-ARM\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.3.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.3.0\Device\Include-D__UVISION_VERSION="516" -D_RTE_ -DSTM32F10X_HD -DUSE_HAL_DRIVER -DSTM32F103xE-o cubemx_prj\freertos.o --omf_browse cubemx_prj\freertos.crf --depend cubemx_prj\freertos.d)
+F (../Src/freertos.c)(0x5F2231D3)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I../Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -I..\LinkSDK -I..\LinkSDK\atm -I..\LinkSDK\dev_model -I..\LinkSDK\dev_sign -I..\LinkSDK\infra -I..\LinkSDK\mqtt -I..\LinkSDK\wrappers -I..\LinkSDK\wrappers\external_libs -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3-I E:\githubcode\WaterValve\software\CubeMX_prj\MDK-ARM\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.3.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.3.0\Device\Include-D__UVISION_VERSION="516" -D_RTE_ -DSTM32F10X_HD -DUSE_HAL_DRIVER -DSTM32F103xE-o cubemx_prj\freertos.o --omf_browse cubemx_prj\freertos.crf --depend cubemx_prj\freertos.d)
 I (../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h)(0x5F12C2E9)
 I (C:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x55AEF5F2)
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x55AEF5F2)
@@ -274,6 +274,36 @@ I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h)(0x5F12C2E8)
 I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h)(0x5F12C2E8)
 I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h)(0x5F12C2E8)
 F (../Src/stm32f1xx_hal_timebase_tim.c)(0x5F202B97)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I../Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -I..\LinkSDK -I..\LinkSDK\atm -I..\LinkSDK\dev_model -I..\LinkSDK\dev_sign -I..\LinkSDK\infra -I..\LinkSDK\mqtt -I..\LinkSDK\wrappers -I..\LinkSDK\wrappers\external_libs -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3-I E:\githubcode\WaterValve\software\CubeMX_prj\MDK-ARM\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.3.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.3.0\Device\Include-D__UVISION_VERSION="516" -D_RTE_ -DSTM32F10X_HD -DUSE_HAL_DRIVER -DSTM32F103xE-o cubemx_prj\stm32f1xx_hal_timebase_tim.o --omf_browse cubemx_prj\stm32f1xx_hal_timebase_tim.crf --depend cubemx_prj\stm32f1xx_hal_timebase_tim.d)
+I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h)(0x5F12C2E8)
+I (../Inc/stm32f1xx_hal_conf.h)(0x5F202B97)
+I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h)(0x5F12C2E8)
+I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h)(0x5F12C2E8)
+I (../Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f1xx.h)(0x5F12C2E3)
+I (../Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xe.h)(0x5F12C2E3)
+I (../Drivers/CMSIS/Include/core_cm3.h)(0x5F12C2E8)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x55AEF5F2)
+I (../Drivers/CMSIS/Include/cmsis_version.h)(0x5F12C2E8)
+I (../Drivers/CMSIS/Include/cmsis_compiler.h)(0x5F12C2E8)
+I (../Drivers/CMSIS/Include/cmsis_armcc.h)(0x5F12C2E8)
+I (../Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h)(0x5F12C2E3)
+I (C:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x55AEF5F2)
+I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc_ex.h)(0x5F12C2E8)
+I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio.h)(0x5F12C2E8)
+I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio_ex.h)(0x5F12C2E8)
+I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_exti.h)(0x5F12C2E8)
+I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h)(0x5F12C2E8)
+I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma_ex.h)(0x5F12C2E8)
+I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_cortex.h)(0x5F12C2E8)
+I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h)(0x5F12C2E8)
+I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h)(0x5F12C2E8)
+I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h)(0x5F12C2E8)
+I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h)(0x5F12C2E8)
+I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h)(0x5F12C2E8)
+I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h)(0x5F12C2E8)
+F (..\Src\wh_lte.c)(0x5F24320F)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I../Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -I..\LinkSDK -I..\LinkSDK\atm -I..\LinkSDK\dev_model -I..\LinkSDK\dev_sign -I..\LinkSDK\infra -I..\LinkSDK\mqtt -I..\LinkSDK\wrappers -I..\LinkSDK\wrappers\external_libs -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3-I E:\githubcode\WaterValve\software\CubeMX_prj\MDK-ARM\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.3.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.3.0\Device\Include-D__UVISION_VERSION="516" -D_RTE_ -DSTM32F10X_HD -DUSE_HAL_DRIVER -DSTM32F103xE-o cubemx_prj\wh_lte.o --omf_browse cubemx_prj\wh_lte.crf --depend cubemx_prj\wh_lte.d)
+I (..\Src\wh_lte.h)(0x5F24320D)
+I (../Inc/usart.h)(0x5F223058)
+I (../Inc/main.h)(0x5F202B97)
 I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h)(0x5F12C2E8)
 I (../Inc/stm32f1xx_hal_conf.h)(0x5F202B97)
 I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h)(0x5F12C2E8)
