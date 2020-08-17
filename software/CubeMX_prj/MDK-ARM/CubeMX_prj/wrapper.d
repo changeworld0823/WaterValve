@@ -53,3 +53,7 @@ cubemx_prj\wrapper.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.
 cubemx_prj\wrapper.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h
 cubemx_prj\wrapper.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h
 cubemx_prj\wrapper.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h
+cubemx_prj\wrapper.o: ..\Src\wh_lte.h
+cubemx_prj\wrapper.o: ../Inc/usart.h
+cubemx_prj\wrapper.o: ../Inc/main.h
+cubemx_prj\wrapper.o: ..\LinkSDK\atm\at_parser.h

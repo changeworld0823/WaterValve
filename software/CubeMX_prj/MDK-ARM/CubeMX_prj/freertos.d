@@ -42,3 +42,14 @@ cubemx_prj\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.
 cubemx_prj\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h
 cubemx_prj\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h
 cubemx_prj\freertos.o: ../Inc/usart.h
+cubemx_prj\freertos.o: ..\LinkSDK\dev_sign\dev_sign_api.h
+cubemx_prj\freertos.o: ..\LinkSDK\dev_sign\dev_sign_internal.h
+cubemx_prj\freertos.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+cubemx_prj\freertos.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+cubemx_prj\freertos.o: ..\LinkSDK\infra\infra_config.h
+cubemx_prj\freertos.o: ..\LinkSDK\infra\infra_defs.h
+cubemx_prj\freertos.o: ..\LinkSDK\infra\infra_types.h
+cubemx_prj\freertos.o: ..\LinkSDK\dev_sign\dev_sign_api.h
+cubemx_prj\freertos.o: ..\LinkSDK\dev_sign\dev_sign_wrapper.h
+cubemx_prj\freertos.o: ..\LinkSDK\mqtt\mqtt_api.h
+cubemx_prj\freertos.o: ..\LinkSDK\atm\at_api.h

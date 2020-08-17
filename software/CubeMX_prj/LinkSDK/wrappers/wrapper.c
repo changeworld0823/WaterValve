@@ -15,14 +15,15 @@
 #include "stm32f1xx_hal.h"
 #include "cmsis_os.h"
 
+#include "wh_lte.h"
+#include "at_parser.h"
 
-#define VALVE_PRODUCT_KEY         "a1OX6aa5gk8"
-#define VALVE_PRODUCT_SECRET      "4R9HZPK22uyWog2E"
-#define VALVE_DEVICE_NAME         "watervalve_1"
-#define VALVE_DEVICE_SECRET       "NROjb5mS14K36DJsYU1mlqcijoOXs2Rj"
+#define VALVE_PRODUCT_KEY         "a12EOnXtII4"
+#define VALVE_PRODUCT_SECRET      "Ly7n1CckDCCnJu6u"
+#define VALVE_DEVICE_NAME         "WaterValve_1"
+#define VALVE_DEVICE_SECRET       "d7b86cffe99336eef9028523fb959044"
 
 #define VALVE_FIRMWARE_VERSION    "app-1.0.0-20200716.1000"
-
 
 #define RING_BUFFER_SIZE            (128)
 
@@ -33,6 +34,10 @@
 #define DEFAULT_THREAD_NAME         "linkkit_task"
 #define DEFAULT_THREAD_SIZE         (256)
 #define TASK_STACK_ALIGN_SIZE       (4)
+#define DOMAIN_RSP_MAX_LEN					128
+#define MAX_LINK_NUM								2
+#define DEFAULT_CMD_LEN							64
+#define DEFAULT_RSP_LEN							64
 
 typedef struct
 {
@@ -41,12 +46,91 @@ typedef struct
   uint16_t head;
 }uart_ring_buffer_t;
 
+typedef struct link_s{
+	int fd;
+	void* sem_start;
+	void* sem_close;
+}link_t;
+
 extern UART_HandleTypeDef huart1;
 
 static uint8_t  g_uart_tx_flag;
 static uart_ring_buffer_t   g_uart_rx_buf;
 static UART_HandleTypeDef* p_at_uart = &huart1;
 
+static uint8_t inited = 0;
+static link_t g_link[MAX_LINK_NUM];
+static void *g_link_mutex;
+static void *g_domain_mutex;
+static void *g_domain_sem;
+static char g_pcdomain_rsp[DOMAIN_RSP_MAX_LEN];
+static char g_pcdomain_buf[DOMAIN_RSP_MAX_LEN];
+static char g_cmd[DEFAULT_CMD_LEN];
+static char g_rsp[DEFAULT_RSP_LEN];
+
+int lte_uart_init(void)
+{
+	int ret = 0;
+	char *cmd = g_cmd;
+	char *rsp = g_rsp;
+	/*enter command mode*/
+	memset(cmd, 0, DEFAULT_CMD_LEN);
+	memset(rsp, 0, DEFAULT_RSP_LEN);
+	HAL_Snprintf(cmd, DEFAULT_CMD_LEN - 1, "%s", "+++");
+	at_send_no_reply(cmd, strlen(cmd), false);
+	memset(cmd, 0, DEFAULT_CMD_LEN);
+	HAL_Snprintf(cmd, DEFAULT_CMD_LEN - 1, "%s", "a");
+	at_send_no_reply(cmd, strlen(cmd), false);
+	
+	/*set uart baudrate*/
+	memset(cmd, 0, DEFAULT_CMD_LEN);
+	memset(rsp, 0, DEFAULT_RSP_LEN);
+	HAL_Snprintf(cmd, DEFAULT_CMD_LEN - 1, "%s=%d,%d,%d,%s,%s%s", 
+		AT_CMD_UART_SET, AT_UART_BAUDRATE, AT_UART_DATA_WIDTH, AT_UART_STOP_BITS, AT_PARITY, AT_FLOWCONTROL, AT_RECV_PREFIX);
+	at_send_wait_reply(cmd, strlen(cmd), true, NULL, 0, rsp, DEFAULT_RSP_LEN, NULL);
+	if(strstr(rsp, AT_CMD_SUCCESS_RSP) == NULL){
+		return -1;
+	}
+	
+	/*set uart pack time*/
+	memset(cmd, 0, DEFAULT_CMD_LEN);
+	memset(rsp, 0, DEFAULT_RSP_LEN);
+	HAL_Snprintf(cmd, DEFAULT_CMD_LEN - 1, "%s=%d%s",
+		AT_CMD_UART_PTIM, AT_CMD_DATA_INTERVAL_MS,AT_RECV_PREFIX);
+	at_send_wait_reply(cmd, strlen(cmd), true, NULL, 0, rsp, DEFAULT_RSP_LEN, NULL);
+	if(strstr(rsp, AT_CMD_SUCCESS_RSP) == NULL){
+		return -1;
+	}
+	
+	/*set uart pack length*/
+	memset(cmd, 0, DEFAULT_CMD_LEN);
+	memset(rsp, 0, DEFAULT_RSP_LEN);
+	HAL_Snprintf(cmd, DEFAULT_CMD_LEN - 1, "%s=%d%s",
+		AT_CMD_UART_PLEN, AT_CMD_DATA_LEN, AT_RECV_PREFIX);
+	at_send_wait_reply(cmd, strlen(cmd), true, NULL, 0, rsp, DEFAULT_RSP_LEN, NULL);
+	if(strstr(rsp, AT_CMD_SUCCESS_RSP) == NULL){
+		return -1;
+	}
+	
+	return 0;
+}
+
+int lte_ip_init()
+{
+	char *cmd = g_cmd;
+	char *rsp = g_rsp;
+	/*set module network mode*/
+	memset(cmd, 0, DEFAULT_CMD_LEN);
+	memset(rsp, 0, DEFAULT_CMD_LEN);
+	HAL_Snprintf(cmd, DEFAULT_CMD_LEN - 1, "%s=%s%s",
+		AT_CMD_NETWORK, AT_CMD_RAWMODE, AT_RECV_PREFIX);
+	at_send_wait_reply(cmd, strlen(cmd), true, NULL, 0, rsp,DEFAULT_RSP_LEN, NULL);
+	if(strstr(rsp, AT_CMD_SUCCESS_RSP) == NULL){
+		return -1;
+	}
+	
+	return 0;
+}
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
@@ -181,7 +265,48 @@ int HAL_AT_CONN_DomainToIp(char *domain, char ip[16])
  */
 int HAL_AT_CONN_Init(void)
 {
-	return (int)1;
+	int ret = 0;
+	uint32_t linknum = 0;
+	
+	if(inited){		//module have already inited
+		return 0;
+	}
+	
+	memset(g_pcdomain_rsp, 0, DOMAIN_RSP_MAX_LEN);
+	if((g_link_mutex = HAL_MutexCreate()) == NULL){
+		goto err;
+	}
+	if((g_domain_mutex = HAL_MutexCreate()) == NULL){
+		goto err;
+	}
+	if((g_domain_sem = HAL_SemaphoreCreate()) == NULL){
+		goto err;
+	}
+	
+	memset(g_link, 0, sizeof(g_link));
+	for(linknum = 0; linknum < MAX_LINK_NUM; linknum++){
+		g_link[linknum].fd = -1;
+	}
+	
+	
+	ret = lte_uart_init();
+	if(ret){
+		goto err;
+	}
+	
+	ret = lte_ip_init();
+	return 0;
+err:
+	if(g_link_mutex != NULL){
+		HAL_MutexDestroy(g_link_mutex);
+	}
+	if(g_domain_mutex != NULL){
+		HAL_MutexDestroy(g_domain_mutex);
+	}
+	if(g_domain_sem != NULL){
+		HAL_SemaphoreDestroy(g_domain_sem);
+	}
+	return -1;
 }
 
 
