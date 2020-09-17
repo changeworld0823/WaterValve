@@ -546,11 +546,11 @@ ARM Macro Assembler    Page 9
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
 ork --depend=myplc\startup_stm32f103xe.d -omyplc\startup_stm32f103xe.o -I..\Cor
-e\Inc -IC:\Users\meiko\Desktop\Firmware\MDK-ARM\RTE -IC:\Keil_v5\ARM\PACK\ARM\C
-MSIS\4.3.0\CMSIS\Include -IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.3.0\Device\
-Include --predefine="__MICROLIB SETA 1" --predefine="__UVISION_VERSION SETA 516
-" --predefine="_RTE_ SETA 1" --predefine="STM32F10X_HD SETA 1" --list=startup_s
-tm32f103xe.lst startup_stm32f103xe.s
+e\Inc -IE:\githubcode\WaterValve\software\Firmware\MDK-ARM\RTE -IC:\Keil_v5\ARM
+\PACK\ARM\CMSIS\4.3.0\CMSIS\Include -IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.
+3.0\Device\Include --predefine="__MICROLIB SETA 1" --predefine="__UVISION_VERSI
+ON SETA 516" --predefine="_RTE_ SETA 1" --predefine="STM32F10X_HD SETA 1" --lis
+t=startup_stm32f103xe.lst startup_stm32f103xe.s
 
 
 

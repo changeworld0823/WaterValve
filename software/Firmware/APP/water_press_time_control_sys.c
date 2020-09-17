@@ -54,7 +54,6 @@ void water_press_time_control_task_start(void)
 /* 业务处理任务 */
 static void water_press_time_task(void *argument)
 {
-		uint8_t ble_data[BLE_CMD_BUF_SIZE];
     /* 初始化设备 */
     init_dev();
     /* 配置模拟输入通道1为电流输入模式，用于水压检测*/
@@ -161,6 +160,7 @@ static void water_press_time_task(void *argument)
         }
 				//elseif(g_mannual_ctl_flag == 1) //手动调节压力
 				//function();
+
         osDelay(1000);
     }
 }
