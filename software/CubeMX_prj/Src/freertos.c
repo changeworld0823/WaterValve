@@ -275,6 +275,7 @@ void StartDefaultTask(void const * argument)
 		}
 		IOT_MQTT_Yield(pclient, 200);
 		loop_cnt += 1;
+		
     osDelay(10);
   }
   /* USER CODE END StartDefaultTask */

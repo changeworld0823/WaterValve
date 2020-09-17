@@ -67,6 +67,7 @@ typedef struct
     eMemStatus_t (*read)(eMemAddrSel_t addr, void *p);
     eMemStatus_t (*write)(eMemAddrSel_t addr, void *p);
     eMemStatus_t (*factory_reset)(void);
+    eMemStatus_t (*set_para)(void);
     sMemData_t *data;
 } sMemDev_t;
 

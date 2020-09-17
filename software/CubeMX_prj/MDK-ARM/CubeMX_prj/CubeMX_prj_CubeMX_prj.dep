@@ -104,7 +104,7 @@ I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h)(0x5F12C2E8)
 I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h)(0x5F12C2E8)
 I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h)(0x5F12C2E8)
 I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h)(0x5F12C2E8)
-F (../Src/freertos.c)(0x5F31F20E)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I../Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -I..\LinkSDK -I..\LinkSDK\atm -I..\LinkSDK\dev_model -I..\LinkSDK\dev_sign -I..\LinkSDK\infra -I..\LinkSDK\mqtt -I..\LinkSDK\wrappers -I..\LinkSDK\wrappers\external_libs -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3 -I..\Src-I E:\githubcode\WaterValve\software\CubeMX_prj\MDK-ARM\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.3.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.3.0\Device\Include-D__UVISION_VERSION="516" -D_RTE_ -DSTM32F10X_HD -DUSE_HAL_DRIVER -DSTM32F103xE-o cubemx_prj\freertos.o --omf_browse cubemx_prj\freertos.crf --depend cubemx_prj\freertos.d)
+F (../Src/freertos.c)(0x5F39FD37)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I../Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -I..\LinkSDK -I..\LinkSDK\atm -I..\LinkSDK\dev_model -I..\LinkSDK\dev_sign -I..\LinkSDK\infra -I..\LinkSDK\mqtt -I..\LinkSDK\wrappers -I..\LinkSDK\wrappers\external_libs -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3 -I..\Src-I E:\githubcode\WaterValve\software\CubeMX_prj\MDK-ARM\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.3.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.3.0\Device\Include-D__UVISION_VERSION="516" -D_RTE_ -DSTM32F10X_HD -DUSE_HAL_DRIVER -DSTM32F103xE-o cubemx_prj\freertos.o --omf_browse cubemx_prj\freertos.crf --depend cubemx_prj\freertos.d)
 I (../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h)(0x5F12C2E9)
 I (C:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x55AEF5F2)
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x55AEF5F2)
@@ -311,7 +311,7 @@ I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h)(0x5F12C2E8)
 I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h)(0x5F12C2E8)
 I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h)(0x5F12C2E8)
 F (..\Src\wh_lte.c)(0x5F322DF1)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I../Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -I..\LinkSDK -I..\LinkSDK\atm -I..\LinkSDK\dev_model -I..\LinkSDK\dev_sign -I..\LinkSDK\infra -I..\LinkSDK\mqtt -I..\LinkSDK\wrappers -I..\LinkSDK\wrappers\external_libs -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3 -I..\Src-I E:\githubcode\WaterValve\software\CubeMX_prj\MDK-ARM\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.3.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.3.0\Device\Include-D__UVISION_VERSION="516" -D_RTE_ -DSTM32F10X_HD -DUSE_HAL_DRIVER -DSTM32F103xE-o cubemx_prj\wh_lte.o --omf_browse cubemx_prj\wh_lte.crf --depend cubemx_prj\wh_lte.d)
-I (..\Src\wh_lte.h)(0x5F323352)
+I (..\Src\wh_lte.h)(0x5F39FE25)
 I (../Inc/usart.h)(0x5F223058)
 I (../Inc/main.h)(0x5F202B97)
 I (../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h)(0x5F12C2E8)
@@ -1903,7 +1903,7 @@ I (C:\Keil_v5\ARM\ARMCC\include\ctype.h)(0x55AEF5F2)
 I (C:\Keil_v5\ARM\ARMCC\include\locale.h)(0x55AEF5F2)
 I (..\LinkSDK\wrappers\external_libs\cJSON.h)(0x5F0FA2A7)
 I (C:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x55AEF5F2)
-F (..\LinkSDK\wrappers\wrapper.c)(0x5F323352)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I../Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -I..\LinkSDK -I..\LinkSDK\atm -I..\LinkSDK\dev_model -I..\LinkSDK\dev_sign -I..\LinkSDK\infra -I..\LinkSDK\mqtt -I..\LinkSDK\wrappers -I..\LinkSDK\wrappers\external_libs -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3 -I..\Src-I E:\githubcode\WaterValve\software\CubeMX_prj\MDK-ARM\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.3.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.3.0\Device\Include-D__UVISION_VERSION="516" -D_RTE_ -DSTM32F10X_HD -DUSE_HAL_DRIVER -DSTM32F103xE-o cubemx_prj\wrapper.o --omf_browse cubemx_prj\wrapper.crf --depend cubemx_prj\wrapper.d)
+F (..\LinkSDK\wrappers\wrapper.c)(0x5F39FCC6)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I../Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -I..\LinkSDK -I..\LinkSDK\atm -I..\LinkSDK\dev_model -I..\LinkSDK\dev_sign -I..\LinkSDK\infra -I..\LinkSDK\mqtt -I..\LinkSDK\wrappers -I..\LinkSDK\wrappers\external_libs -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3 -I..\Src-I E:\githubcode\WaterValve\software\CubeMX_prj\MDK-ARM\RTE-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.3.0\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.3.0\Device\Include-D__UVISION_VERSION="516" -D_RTE_ -DSTM32F10X_HD -DUSE_HAL_DRIVER -DSTM32F103xE-o cubemx_prj\wrapper.o --omf_browse cubemx_prj\wrapper.crf --depend cubemx_prj\wrapper.d)
 I (..\LinkSDK\infra\infra_types.h)(0x5F0FA2A7)
 I (C:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x55AEF5F2)
 I (..\LinkSDK\infra\infra_config.h)(0x5F0FA2A7)
@@ -1956,7 +1956,7 @@ I (../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h)(0x5F12C2E9)
 I (../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h)(0x5F12C2E9)
 I (../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h)(0x5F12C2E9)
 I (../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h)(0x5F12C2E9)
-I (..\Src\wh_lte.h)(0x5F323352)
+I (..\Src\wh_lte.h)(0x5F39FE25)
 I (../Inc/usart.h)(0x5F223058)
 I (../Inc/main.h)(0x5F202B97)
 I (..\LinkSDK\atm\at_parser.h)(0x5F0FA2A7)

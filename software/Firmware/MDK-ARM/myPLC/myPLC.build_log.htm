@@ -1,0 +1,74 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: ¦ÌVision V5.16a
+Copyright (C) 2015 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: 11 meiko, 1, LIC=9N02Z-JC7CQ-23DM4-FRGG9-09QM6-JBGQA
+ 
+Tool Versions:
+Toolchain:       MDK-ARM Professional  Version: 5.16a
+Toolchain Path:  C:\Keil_v5\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.06 (build 20)
+Assembler:       Armasm.exe V5.06 (build 20)
+Linker/Locator:  ArmLink.exe V5.06 (build 20)
+Library Manager: ArmAr.exe V5.06 (build 20)
+Hex Converter:   FromElf.exe V5.06 (build 20)
+CPU DLL:         SARMCM3.DLL V5.16a
+Dialog DLL:      DCM.DLL V1.13.2.0
+Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V2.0.17.0
+Dialog DLL:      TCM.DLL V1.14.5.0
+ 
+<h2>Project:</h2>
+C:\Users\meiko\Desktop\Firmware\MDK-ARM\myPLC.uvprojx
+Project File Date:  09/02/2020
+
+<h2>Output:</h2>
+*** Using Compiler 'V5.06 (build 20)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
+Build target 'myPLC'
+compiling water_press_time_control_sys.c...
+..\APP\water_press_time_control_sys.c(223): warning:  #177-D: function "pre_ImaToPressure" was declared but never referenced
+  static uint16_t pre_ImaToPressure(float MA)
+..\APP\water_press_time_control_sys.c(228): warning:  #177-D: function "openingDegreeToIma" was declared but never referenced
+  static float openingDegreeToIma(int8_t percent)
+..\APP\water_press_time_control_sys.c: 2 warnings, 0 errors
+compiling wh_ble.c...
+..\BSP\wh_ble.c(28): warning:  #167-D: argument of type "uint8_t *" is incompatible with parameter of type "const char *"
+  						if(strstr(buf, "ok") == NULL){
+..\BSP\wh_ble.c(224): warning:  #177-D: variable "delay_time" was declared but never referenced
+  		uint16_t delay_time = (buf[6] << 8) + buf[7];
+..\BSP\wh_ble.c(234): warning:  #177-D: variable "delay_time" was declared but never referenced
+  		uint16_t delay_time = (buf[6] << 8) + buf[7];
+..\BSP\wh_ble.c(244): warning:  #177-D: variable "delay_time" was declared but never referenced
+  		uint16_t delay_time = (buf[6] << 8) + buf[7];
+..\BSP\wh_ble.c(273): warning:  #177-D: variable "end_time" was declared but never referenced
+  		uint8_t end_time 				= buf[8];												//??Ö¹Ê±??
+..\BSP\wh_ble.c(297): warning:  #177-D: variable "state" was declared but never referenced
+  		uint8_t state = buf[6];
+..\BSP\wh_ble.c: 6 warnings, 0 errors
+linking...
+Program Size: Code=33620 RO-data=3624 RW-data=560 ZI-data=48048  
+FromELF: creating hex file...
+"myPLC\myPLC.axf" - 0 Error(s), 8 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: ARM
+                http://www.keil.com/pack/ARM.CMSIS.4.3.0.pack
+                ARM::CMSIS:CORE:4.1.0
+                CMSIS (Cortex Microcontroller Software Interface Standard)
+   * Component: CORE Version: 4.1.0
+
+<h2>Collection of Component include folders:</h2>
+  C:\Users\meiko\Desktop\Firmware\MDK-ARM\RTE
+  C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.3.0\CMSIS\Include
+  C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.3.0\Device\Include
+
+<h2>Collection of Component Files used:</h2>
+
+   * Component: ARM::CMSIS:CORE:4.1.0
+Build Time Elapsed:  00:00:06
+</pre>
+</body>
+</html>

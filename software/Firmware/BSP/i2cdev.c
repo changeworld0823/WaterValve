@@ -8,13 +8,15 @@ extern I2C_HandleTypeDef hi2c2;
 
 uint8_t i2c_master_init(i2c_dev_t *dev, I2C_HandleTypeDef *port)
 {
+    if(port==NULL) return 0;
+
     dev->port = port;
+    return 1;
 }
 
 uint8_t errTrace = 0;
 uint8_t i2c_dev_read_reg(const i2c_dev_t *dev, uint8_t dev_addr, uint16_t reg, void *in_data, uint16_t in_size)
 {
-    uint8_t errCNT = 0;
     if(osSemaphoreAcquire(myI2C2BinarySemHandle, portMAX_DELAY)!=osOK)
     {
         errTrace = 1;
@@ -39,7 +41,6 @@ uint8_t i2c_dev_read_reg(const i2c_dev_t *dev, uint8_t dev_addr, uint16_t reg, v
 uint8_t errWrTrace = 0;
 uint8_t i2c_dev_write_reg(const i2c_dev_t *dev, uint8_t dev_addr, uint16_t reg, const void *out_data, uint16_t out_size)
 {
-    uint8_t errCNT = 0;
     if(osSemaphoreAcquire(myI2C2BinarySemHandle, portMAX_DELAY)!=osOK)
     {
         errWrTrace = 1;

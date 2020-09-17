@@ -1,0 +1,15 @@
+myplc\timers.o: ../Middlewares/Third_Party/FreeRTOS/Source/timers.c
+myplc\timers.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+myplc\timers.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+myplc\timers.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+myplc\timers.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+myplc\timers.o: ../Core/Inc/FreeRTOSConfig.h
+myplc\timers.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+myplc\timers.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+myplc\timers.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
+myplc\timers.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3/portmacro.h
+myplc\timers.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
+myplc\timers.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
+myplc\timers.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h
+myplc\timers.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h
+myplc\timers.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h

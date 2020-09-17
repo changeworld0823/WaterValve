@@ -20,9 +20,6 @@
 /* 初始化 */
 eIVInStatus_t iv_in_init(void)
 {
-    uint8_t mode = 0;
-    uint8_t enable = 0;
-
     if(tps08u_init()!=0)
     {
         return eIVIn_InitFail;
@@ -86,6 +83,7 @@ eIVInStatus_t iv_in_set_mode(eIVInChannel_t Ch, eIVInModeSel_t ModeSel)
     {
         return eIVIn_DataNotFit;
     }
+    return eIVIn_Ok;
 }
 
 /* 获取Ch通道的输入电流，单位ma */

@@ -23,7 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "wh_ble.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -38,6 +38,30 @@ void startAPP(void);
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+
+uint8_t RxDMABuf1[RX_BUFFER_SIZE];
+volatile uint8_t DMA_Usart_RxSize1 = 0;
+volatile uint8_t recv_end_flag1 = 0;
+
+volatile uint8_t RxBuf_LOCK1 = 0;
+uint8_t RxBuf1[RX_BUFFER_SIZE];
+volatile uint8_t RxBufSize1 = 0;
+
+uint8_t RxDMABuf3[RX_BUFFER_SIZE];
+volatile uint8_t DMA_Usart_RxSize3 = 0;
+volatile uint8_t recv_end_flag3 = 0;
+
+volatile uint8_t RxBuf_LOCK3 = 0;
+uint8_t RxBuf3[RX_BUFFER_SIZE];
+volatile uint8_t RxBufSize3 = 0;
+
+uint8_t RxDMABuf4[RX_BUFFER_SIZE];
+volatile uint8_t DMA_Usart_RxSize4 = 0;
+volatile uint8_t recv_end_flag4 = 0;
+
+volatile uint8_t RxBuf_LOCK4 = 0;
+uint8_t RxBuf4[RX_BUFFER_SIZE];
+volatile uint8_t RxBufSize4 = 0;
 
 /* USER CODE END PM */
 
@@ -55,6 +79,14 @@ UART_HandleTypeDef huart4;
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
+DMA_HandleTypeDef hdma_uart4_rx;
+DMA_HandleTypeDef hdma_uart4_tx;
+DMA_HandleTypeDef hdma_usart1_rx;
+DMA_HandleTypeDef hdma_usart1_tx;
+DMA_HandleTypeDef hdma_usart2_rx;
+DMA_HandleTypeDef hdma_usart2_tx;
+DMA_HandleTypeDef hdma_usart3_rx;
+DMA_HandleTypeDef hdma_usart3_tx;
 
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -63,19 +95,17 @@ const osThreadAttr_t defaultTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
   .stack_size = 128 * 4
 };
-
-/* Definitions for myI2C2BinarySem */
+/* USER CODE BEGIN PV */
 osSemaphoreId_t myI2C2BinarySemHandle;
 const osSemaphoreAttr_t myI2C2BinarySem_attributes = {
   .name = "myI2C2BinarySem"
 };
-/* USER CODE BEGIN PV */
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_UART4_Init(void);
@@ -88,7 +118,7 @@ static void MX_SPI2_Init(void);
 void StartDefaultTask(void *argument);
 
 /* USER CODE BEGIN PFP */
-
+void UART_IDLE_Callback(UART_HandleTypeDef *huart); 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -124,6 +154,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_ADC1_Init();
   MX_I2C2_Init();
   MX_UART4_Init();
@@ -458,7 +489,8 @@ static void MX_UART4_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN UART4_Init 2 */
-
+	__HAL_UART_ENABLE_IT(&huart4, UART_IT_IDLE);
+	HAL_UART_Receive_DMA(&huart4,RxDMABuf4,RX_BUFFER_SIZE);
   /* USER CODE END UART4_Init 2 */
 
 }
@@ -491,7 +523,8 @@ static void MX_USART1_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART1_Init 2 */
-
+	__HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
+	HAL_UART_Receive_DMA(&huart1,RxDMABuf1,RX_BUFFER_SIZE);
   /* USER CODE END USART1_Init 2 */
 
 }
@@ -524,7 +557,8 @@ static void MX_USART2_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART2_Init 2 */
-
+	//__HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE);
+	//HAL_UART_Receive_DMA(&huart2,RxDMABuf2,RX_BUFFER_SIZE);
   /* USER CODE END USART2_Init 2 */
 
 }
@@ -557,8 +591,47 @@ static void MX_USART3_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART3_Init 2 */
-
+	__HAL_UART_ENABLE_IT(&huart3, UART_IT_IDLE);
+	HAL_UART_Receive_DMA(&huart3,RxDMABuf3,RX_BUFFER_SIZE);
   /* USER CODE END USART3_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
+  /* DMA1_Channel3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
+  /* DMA1_Channel4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+  /* DMA1_Channel5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+  /* DMA1_Channel6_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+  /* DMA1_Channel7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
+  /* DMA2_Channel3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Channel3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Channel3_IRQn);
+  /* DMA2_Channel4_5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Channel4_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Channel4_5_IRQn);
 
 }
 
@@ -667,7 +740,128 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void UART_IDLE_Callback(UART_HandleTypeDef *huart)
+{
+	uint32_t temp;
+	if(__HAL_UART_GET_FLAG(huart, UART_FLAG_IDLE)!= RESET)
+	{
+		__HAL_UART_CLEAR_IDLEFLAG(huart);
+		temp = huart->Instance->SR;
+		temp = huart->Instance->DR;
+		temp = temp;
+		HAL_UART_DMAStop(huart);
+		if(huart->Instance == USART1)
+		{
+			DMA_Usart_RxSize1 = RX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);
+			if(DMA_Usart_RxSize1 > 1 && RxBuf_LOCK1 ==0)
+			{
+				memcpy(RxBuf1 + RxBufSize1, RxDMABuf1, DMA_Usart_RxSize1);
+				RxBufSize1 += DMA_Usart_RxSize1;
+			}
+			HAL_UART_Receive_DMA(&huart1, RxDMABuf1, RX_BUFFER_SIZE);
+			//memset(g_uart1_recvbuf, 0, RX_BUFFER_SIZE);
+			//memcpy(g_uart1_recvbuf, RxDMABuf1, RxBufSize1);
+			//decode_lte_recvbuf(g_uart1_recvbuf, RxBufSize1);
+		}
+		else if(huart->Instance == USART3){
+			DMA_Usart_RxSize3 = RX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart3_rx);
+			if(DMA_Usart_RxSize3 > 1 && RxBuf_LOCK3 ==0)
+			{
+				memcpy(RxBuf3 + RxBufSize3, RxDMABuf3, DMA_Usart_RxSize3);
+				RxBufSize3 += DMA_Usart_RxSize3;
+			}
+			
+			HAL_UART_Receive_DMA(&huart3, RxDMABuf3, RX_BUFFER_SIZE);
+			memset(g_uart3_recvbuf, 0, RX_BUFFER_SIZE);
+			memcpy(g_uart3_recvbuf, RxDMABuf3, DMA_Usart_RxSize3);
+			memset(RxDMABuf3, 0, RX_BUFFER_SIZE);
+			//g_uart3_recv_flag = 1;
+			decode_ble_recvbuf(g_uart3_recvbuf, DMA_Usart_RxSize3);
+		}
+		else if(huart->Instance == UART4){
+			DMA_Usart_RxSize4 = RX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(&hdma_uart4_rx);
+			if(DMA_Usart_RxSize4 > 1 && RxBuf_LOCK4 ==0)
+			{
+				memcpy(RxBuf4 + RxBufSize4, RxDMABuf4, DMA_Usart_RxSize4);
+				RxBufSize4 += DMA_Usart_RxSize4;
+			}
+			HAL_UART_Receive_DMA(&huart4, RxDMABuf4, RX_BUFFER_SIZE);
+			//memset(g_uart4_recvbuf, 0, RX_BUFFER_SIZE);
+			//memcpy(g_uart4_recvbuf, RxDMABuf4, DMA_Usart_RxSize4);
+			//decode_ble_recvbuf(g_uart4_recvbuf, DMA_Usart_RxSize4);
+		}
+	}
+}
 
+uint8_t Uart_GetRxSize(UART_HandleTypeDef *huart, uint8_t *buf)
+{
+	uint8_t Size = 0;
+	if(huart->Instance == USART1)
+	{
+		RxBuf_LOCK1 = 1;
+		if(RxBufSize1 > 0)
+		{
+			Size = RxBufSize1;
+			RxBuf1[RxBufSize1] = 0;
+			memcpy(buf, RxBuf1, RxBufSize1);
+			RxBufSize1 = 0;
+		}
+		RxBuf_LOCK1 = 0;
+	}
+	else if(huart->Instance == USART3){
+		RxBuf_LOCK3 = 1;
+		if(RxBufSize3 > 0)
+		{
+			Size = RxBufSize3;
+			RxBuf3[RxBufSize3] = 0;
+			memcpy(buf, RxBuf3, RxBufSize3);
+			RxBufSize3 = 0;
+		}
+		RxBuf_LOCK3 = 0;
+	}
+	else if(huart->Instance == UART4){
+		RxBuf_LOCK4 = 1;
+		if(RxBufSize4 > 0)
+		{
+			Size = RxBufSize4;
+			RxBuf4[RxBufSize4] = 0;
+			memcpy(buf, RxBuf4, RxBufSize4);
+			RxBufSize4 = 0;
+		}
+		RxBuf_LOCK4 = 0;
+	}
+	return Size;
+}
+
+uint8_t Uart_SendData(UART_HandleTypeDef *huart, uint8_t *buf, uint8_t Size)
+{
+	static uint8_t DMA_TX_BUF[RX_BUFFER_SIZE] = {0};
+	
+	if(Size == 0)
+		return 0;
+	if(huart->Instance == USART1 && (huart->hdmatx->Instance->CNDTR == 0)
+		&& Size < RX_BUFFER_SIZE)
+	{
+		memcpy(DMA_TX_BUF, buf, Size);
+		HAL_UART_Transmit_DMA(&huart1, DMA_TX_BUF, Size);
+		return 1;
+	}
+	else if(huart->Instance == USART3 && (huart->hdmatx->Instance->CNDTR == 0)
+		&& Size < RX_BUFFER_SIZE)
+	{
+		memcpy(DMA_TX_BUF, buf, Size);
+		HAL_UART_Transmit_DMA(&huart3, DMA_TX_BUF, Size);
+		return 1;
+	}
+	else if(huart->Instance == UART4 && (huart->hdmatx->Instance->CNDTR == 0)
+		&& Size < RX_BUFFER_SIZE)
+	{
+		memcpy(DMA_TX_BUF, buf, Size);
+		HAL_UART_Transmit_DMA(&huart4, DMA_TX_BUF, Size);
+		return 1;
+	}
+	return 0;
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */

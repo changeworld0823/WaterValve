@@ -176,34 +176,50 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>234</LineNumber>
+          <LineNumber>1280</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134225504</Address>
+          <Address>134228442</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>../Src/stm32f1xx_it.c</Filename>
+          <Filename>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\CubeMX_prj\../Src/stm32f1xx_it.c\234</Expression>
+          <Expression>\\CubeMX_prj\../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c\1280</Expression>
         </Bp>
         <Bp>
           <Number>1</Number>
           <Type>0</Type>
-          <LineNumber>176</LineNumber>
+          <LineNumber>1284</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134225022</Address>
+          <Address>134228450</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>../Src/usart.c</Filename>
+          <Filename>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\CubeMX_prj\../Src/usart.c\176</Expression>
+          <Expression>\\CubeMX_prj\../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c\1284</Expression>
+        </Bp>
+        <Bp>
+          <Number>2</Number>
+          <Type>0</Type>
+          <LineNumber>1255</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134228446</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\CubeMX_prj\../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c\1255</Expression>
         </Bp>
       </Breakpoint>
       <Tracepoint>
@@ -592,7 +608,7 @@
 
   <Group>
     <GroupName>Drivers/CMSIS</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

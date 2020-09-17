@@ -38,7 +38,9 @@
 #define MAX_LINK_NUM								2
 #define DEFAULT_CMD_LEN							64
 #define DEFAULT_RSP_LEN							64
-
+#define DOMAIN_MAX_LEN							64
+#define CONN_CMD_LEN								(DOMAIN_MAX_LEN + DEFAULT_CMD_LEN)
+#define DOMAIN_CMD_LEN							(sizeof(AT_CMD_DOMAIN_TO_IP))
 typedef struct
 {
   uint8_t  data[RING_BUFFER_SIZE];
@@ -65,6 +67,7 @@ static void *g_domain_mutex;
 static void *g_domain_sem;
 static char g_pcdomain_rsp[DOMAIN_RSP_MAX_LEN];
 static char g_pcdomain_buf[DOMAIN_RSP_MAX_LEN];
+static char g_pccmd[CONN_CMD_LEN];
 static char g_cmd[DEFAULT_CMD_LEN];
 static char g_rsp[DEFAULT_RSP_LEN];
 
@@ -124,6 +127,46 @@ int lte_ip_init()
 	memset(rsp, 0, DEFAULT_CMD_LEN);
 	HAL_Snprintf(cmd, DEFAULT_CMD_LEN - 1, "%s=%s%s",
 		AT_CMD_NETWORK, AT_CMD_RAWMODE, AT_RECV_PREFIX);
+	at_send_wait_reply(cmd, strlen(cmd), true, NULL, 0, rsp,DEFAULT_RSP_LEN, NULL);
+	if(strstr(rsp, AT_CMD_SUCCESS_RSP) == NULL){
+		return -1;
+	}
+	
+	/*enable module socket A */
+	memset(cmd, 0, DEFAULT_CMD_LEN);
+	memset(rsp, 0, DEFAULT_CMD_LEN);
+	HAL_Snprintf(cmd, DEFAULT_CMD_LEN - 1, "%s=%s%s",
+		AT_CMD_SOCK_EN, AT_CMD_ENABLE, AT_RECV_PREFIX);
+	at_send_wait_reply(cmd, strlen(cmd), true, NULL, 0, rsp,DEFAULT_RSP_LEN, NULL);
+	if(strstr(rsp, AT_CMD_SUCCESS_RSP) == NULL){
+		return -1;
+	}
+	
+	/*set socket A long connect*/
+	memset(cmd, 0, DEFAULT_CMD_LEN);
+	memset(rsp, 0, DEFAULT_CMD_LEN);
+	HAL_Snprintf(cmd, DEFAULT_CMD_LEN - 1, "%s=%s%s",
+		AT_CMD_SOCK_ASL, AT_CMD_LONG, AT_RECV_PREFIX);
+	at_send_wait_reply(cmd, strlen(cmd), true, NULL, 0, rsp,DEFAULT_RSP_LEN, NULL);
+	if(strstr(rsp, AT_CMD_SUCCESS_RSP) == NULL){
+		return -1;
+	}
+	
+	/*set socket A remote IP and com*/
+	memset(cmd, 0, DEFAULT_CMD_LEN);
+	memset(rsp, 0, DEFAULT_CMD_LEN);
+	HAL_Snprintf(cmd, DEFAULT_CMD_LEN - 1, "%s=%s,%d%s",
+		AT_CMD_SOCK, AT_CMD_IP, AT_CMD_COM, AT_RECV_PREFIX);
+	at_send_wait_reply(cmd, strlen(cmd), true, NULL, 0, rsp,DEFAULT_RSP_LEN, NULL);
+	if(strstr(rsp, AT_CMD_SUCCESS_RSP) == NULL){
+		return -1;
+	}
+	
+	/*reset module*/
+	memset(cmd, 0, DEFAULT_CMD_LEN);
+	memset(rsp, 0, DEFAULT_CMD_LEN);
+	HAL_Snprintf(cmd, DEFAULT_CMD_LEN - 1, "%s%s",
+		AT_CMD_RESET, AT_RECV_PREFIX);
 	at_send_wait_reply(cmd, strlen(cmd), true, NULL, 0, rsp,DEFAULT_RSP_LEN, NULL);
 	if(strstr(rsp, AT_CMD_SUCCESS_RSP) == NULL){
 		return -1;
@@ -202,7 +245,13 @@ int HAL_AT_CONN_Close(int fd, int32_t remote_port)
  */
 int HAL_AT_CONN_Deinit(void)
 {
-	return (int)1;
+	if(!inited){
+		return 0;
+	}
+	
+	HAL_MutexDestroy(g_link_mutex);
+	inited = 0;
+	return 0;
 }
 
 
@@ -236,7 +285,31 @@ int HAL_AT_CONN_Deinit(void)
  */
 int HAL_AT_CONN_DomainToIp(char *domain, char ip[16])
 {
-	return (int)1;
+	char *pccmd = NULL;
+	char *head = NULL;
+	char *end = NULL;
+	char *rsp = NULL;
+	int count = 0;
+	uint64_t t_end, t_left;
+	
+	if(!inited){
+		return -1;
+	}
+	
+	if(domain == NULL || ip == NULL){
+		return -1;
+	}
+	
+	if(strlen(domain) > DOMAIN_MAX_LEN){
+		return -1;
+	}
+	
+	pccmd = g_pccmd;
+	if(pccmd == NULL){
+		return -1;
+	}
+	
+	return 0;
 }
 
 
@@ -295,6 +368,15 @@ int HAL_AT_CONN_Init(void)
 	}
 	
 	ret = lte_ip_init();
+	if(ret){
+		goto err;
+	}
+	
+	/*reg oob for domain and packet input*/
+	
+	//at_register_callback(AT_CMD_DOMAIN_RSP, NULL, NULL, 0, datahandle, NULL);
+	inited = 1;
+	
 	return 0;
 err:
 	if(g_link_mutex != NULL){

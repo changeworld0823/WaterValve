@@ -86,8 +86,6 @@ eD_IN_STATUS inputGetDInHoldStatus(d_in_t sr)
 {
   if(sr>D_IN_LAST) return D_IN_NoAction;
 
-  static uint8_t state = 0;
-  uint8_t retval;
   bool now_read = false;
   static bool last_read[D_IN_LAST] = {false};
   static bool unchange[D_IN_LAST] = {false};
@@ -125,8 +123,6 @@ eD_IN_STATUS inputGetDInEdgeStatus(d_in_t sr)
 {
   if(sr>D_IN_LAST) return D_IN_NoAction;
 
-  static uint8_t state = 0;
-  uint8_t retval;
   bool now_read = false;
   static bool last_read[D_IN_LAST] = {false};
   static bool unchange[D_IN_LAST] = {false};

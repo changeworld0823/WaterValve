@@ -183,6 +183,39 @@ eMemStatus_t memForceSetToFactory(void)
     return eMem_Ok;
 }
 
+/* 重新设置参数 */
+eMemStatus_t memSetPara(void)
+{   
+#undef  data_op
+#define data_op(x,y)    memDataOP(x,y,MEM_WRITE)
+
+    uint8_t val = 0x55;
+    if(memWriteData(eMemAddr_FactoryOnceLock, &val)!=eMem_Ok)
+    {
+        return eMem_WriteFail;
+    }
+
+    /* 设置延时开关时间参数 */
+    if(data_op(eMemAddr_DelayOpenTime, &memData.delayOpenTime)!=eMem_Ok)
+    {
+        return eMem_WriteFail;
+    }
+
+    /* 设置压力时间参数 */
+    if(data_op(eMemAddr_PressueVsTime, &memData.pressueVsTime)!=eMem_Ok)
+    {
+        return eMem_WriteFail;
+    }
+    
+    /* 设置压力流量参数 */
+    if(data_op(eMemAddr_PressueVsTime, &memData.pressureVsFlowSet)!=eMem_Ok)
+    {
+        return eMem_WriteFail;
+    }
+
+    return eMem_Ok;
+}
+
 /* 读取设置 */
 eMemStatus_t memReadSet(void)
 {  
@@ -217,6 +250,7 @@ const sMemDev_t mem_dev =
     .write = memWriteData,
     .read = memReadData,
     .factory_reset = memForceSetToFactory,
+    .set_para = memSetPara,
     .data = &memData,
 };
 
