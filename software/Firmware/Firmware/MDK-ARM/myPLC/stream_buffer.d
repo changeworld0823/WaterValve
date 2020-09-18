@@ -1,0 +1,14 @@
+myplc\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/stream_buffer.c
+myplc\stream_buffer.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+myplc\stream_buffer.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+myplc\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+myplc\stream_buffer.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+myplc\stream_buffer.o: ../Core/Inc/FreeRTOSConfig.h
+myplc\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+myplc\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+myplc\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
+myplc\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3/portmacro.h
+myplc\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
+myplc\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
+myplc\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h
+myplc\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/stream_buffer.h

@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "calendar.h": "c",
+        "tps08u.h": "c",
+        "cmsis_os.h": "c",
+        "freertos.h": "c",
+        "portable.h": "c",
+        "i_v_in.h": "c",
+        "opto_in.h": "c",
+        "ad5422.h": "c",
+        "mem.h": "c",
+        "relay_out.h": "c",
+        "timers.h": "c"
+    }
+}
