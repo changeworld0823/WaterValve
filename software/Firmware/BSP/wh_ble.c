@@ -1,14 +1,24 @@
 #include "wh_ble.h"
+#include "uart.h"
 
-uint8_t g_uart3_recvbuf[RX_BUFFER_SIZE];
 uint8_t g_ble_suc_flag = 0;
 uint8_t g_ble_mode = RAW_DATA_MODE;
+uint8_t g_adjust_range = 2;
+
+#if WORKTYPE_PUMPCONTROL
+uint16_t g_pump_timeout;
+uint16_t g_pump_closedelay;
+#endif
+
 static sCalendar_t cld; 
 
 void ble_rawdata_decode(uint8_t *data, uint8_t datasize);
-unsigned short checksum(uint8_t *buffer, int size);
+//unsigned short checksum(uint8_t *buffer, int size);
 void set_time_press(uint8_t *data);
+void set_time_flow(uint8_t *data);
+void set_flow_press(uint8_t *data);
 void set_af_valve_press(uint8_t *data);
+void set_af_valve_flow(uint8_t *data);
 void open_valve_mannual(uint8_t *data);
 void close_valve_mannual(uint8_t *data);
 void elecmagnetic_ctrl(uint8_t *data);
@@ -18,7 +28,7 @@ void close_valve_delay(uint8_t *data);
 void close_valve_timeout(uint8_t *data);
 void mannul_valve_ctrl(uint8_t *data);
 
-extern UART_HandleTypeDef huart3;
+//extern UART_HandleTypeDef huart3;
 void decode_ble_recvbuf(uint8_t *data, uint8_t datasize)
 {
 		uint8_t *buf = g_uart3_recvbuf;
@@ -47,15 +57,13 @@ void ble_valvelimit_encode(uint8_t *data,uint8_t type, uint8_t state)
 		uint8_t buf[64];
 		uint8_t temp = 0;
 		memset(buf, 0, sizeof(buf));
-		buf[PACKSUM_BIT] = 0x01;
-		buf[PACKID_BIT] = 0x01;
 		buf[DEVICE_TYPE_BIT] = PUMP_VALVE_TYPE;		//设备类型为泵控阀
 		buf[READ_WRITE_BIT] = READ_TYPE;					//数据包读写类型为读
 		buf[PACK_TYPE_BIT] = type;								//数据包类型
 		buf[DATALEN_BIT] = 0x01;									//数据长度
 		temp = DATALEN_BIT + buf[DATALEN_BIT];		
 		buf[temp] = state;
-		buf[temp + 1] = checksum(buf, 6);
+		buf[temp + 1] = 0xFF;
 		memcpy(data, buf, buf[DATALEN_BIT]+7);
 		HAL_UART_Transmit_DMA(&huart3, data, BLE_CMD_BUF_SIZE);
 }
@@ -70,15 +78,13 @@ void ble_valve_mannulctl_encode(uint8_t *data, uint8_t type, uint8_t state)
 		uint8_t buf[64];
 		uint8_t temp = 0;
 		memset(buf, 0, sizeof(buf));
-		buf[PACKSUM_BIT] = 0x01;
-		buf[PACKID_BIT] = 0x01;
 		buf[DEVICE_TYPE_BIT] = PUMP_CONTROL_VALVE;
 		buf[READ_WRITE_BIT] = READ_TYPE;
 		buf[PACK_TYPE_BIT]	= type;
 		buf[DATALEN_BIT]		= 0x01;
 		temp = DATALEN_BIT + buf[DATALEN_BIT];	
 		buf[temp] = state;
-		buf[temp + 1] = checksum(buf, 6);
+		buf[temp + 1] = 0xFF;
 		memcpy(data, buf, buf[DATALEN_BIT]+7);
 		HAL_UART_Transmit_DMA(&huart3, data, BLE_CMD_BUF_SIZE);
 }
@@ -93,40 +99,37 @@ void ble_managesys_prepress_encode(uint8_t *data, uint8_t type,uint16_t pressval
 		uint8_t buf[64];
 		uint8_t temp = 0;
 		memset(buf, 0, sizeof(buf));
-		buf[PACKSUM_BIT] = 0x01;
-		buf[PACKID_BIT] = 0x01;
-		buf[DEVICE_TYPE_BIT] = TIME_PRESS_TYPE;
+		buf[DEVICE_TYPE_BIT] = PRESS_MANAGE_TYPE;
 		buf[READ_WRITE_BIT] = READ_TYPE;
 		buf[PACK_TYPE_BIT]	= type;							//0x01:阀前压力值,0x02:阀后压力值，0x03:流量值
 		buf[DATALEN_BIT]		= 0x02;
 		temp = DATALEN_BIT + buf[DATALEN_BIT];
 		buf[temp] = (pressvalue >> 8) & 0xff;
 		buf[temp + 1] = pressvalue & 0xff;
-		buf[temp + 2] = checksum(buf, 8);
-		memcpy(data, buf, buf[DATALEN_BIT]+7);
+		buf[temp + 2] = 0xFF;
+		memcpy(data, buf, buf[DATALEN_BIT]+5);
 		HAL_UART_Transmit_DMA(&huart3, data, BLE_CMD_BUF_SIZE);
 }
 
 /**************************************************************
-**function: 水压管理系统通用参数编码
+**function: 水压管理系统通用参数编码，包括进水压力值，出水压力值
+**					当前流量值，电池电量以及4G信号
 **data:			数据缓冲区
 **state:		动作状态
 **************************************************************/
-void ble_managesys_normaldata_encode(uint8_t *data, uint8_t type, uint8_t value)
+void ble_managesys_normaldata_encode(uint8_t *data, uint8_t type, uint16_t value)
 {
 		uint8_t buf[64];
 		uint8_t temp = 0;
 		memset(buf, 0, sizeof(buf));
-		buf[PACKSUM_BIT] = 0x01;
-		buf[PACKID_BIT] = 0x01;
-		buf[DEVICE_TYPE_BIT] = TIME_PRESS_TYPE;
+		buf[DEVICE_TYPE_BIT] = PRESS_MANAGE_TYPE;
 		buf[READ_WRITE_BIT] = READ_TYPE;
-		buf[PACK_TYPE_BIT]	= type;							//0x03:流量值,0x04:电池电量，0x05:4G信号值，0x06:调整阀后压力进度
-		buf[DATALEN_BIT]		= 0x01;
-		temp = DATALEN_BIT + buf[DATALEN_BIT];
-		buf[temp] = value;
-		buf[temp + 1] = checksum(buf, 6);
-		memcpy(data, buf, buf[DATALEN_BIT]+7);
+		buf[PACK_TYPE_BIT]	= type;							//0x01:电池电量，0x02：4G信号
+		buf[DATALEN_BIT]		= 0x02;
+		buf[DATALEN_BIT + 1] = (value >> 8) & 0xff;
+		buf[DATALEN_BIT + 2] = (value << 8) & 0xff;
+		buf[DATALEN_BIT + buf[DATALEN_BIT] + 1] = 0xFF;
+		memcpy(data, buf, buf[DATALEN_BIT]+5);
 		HAL_UART_Transmit_DMA(&huart3, data, BLE_CMD_BUF_SIZE);
 }
 
@@ -150,19 +153,14 @@ void ble_rawdata_decode(uint8_t *data, uint8_t datasize)			//蓝牙透传数据解码
 		uint8_t cksum = 0;
 		if(buf == NULL)
 				return;
-		cksum = checksum(buf, datasize);
-		if(cksum != *(buf + (datasize - 1))){			//对数据包进行校验和运算
+		//cksum = checksum(buf, datasize);
+		if(0xFF != *(buf + (datasize - 1))){			//对数据包进行校验和运算
 				return;
 		}
-		if(*buf != *(buf + 1)){										//当前数据包未接收完毕
-				/*继续接收下一包数据，做拼接？*/
-				
-				/******************************/
-		}
-		switch(*(buf + 2)){												//设备类型
-			case PUMP_CONTROL_VALVE://泵控阀
+		switch(*buf){															//设备类型
+			case PUMP_CONTROL_VALVE:								//泵控阀
 					switch(*(buf + 4)){
-						case 0x01:					//设置开阀延时时间
+						case 0x01:												//设置开阀延时时间
 								open_valve_delay(buf);
 								break;
 						case 0x02:					//设置关阀延时时间
@@ -180,36 +178,42 @@ void ble_rawdata_decode(uint8_t *data, uint8_t datasize)			//蓝牙透传数据解码
 						default:break;
 					}
 					break;
-			case PRE_ALARM_VALVE:			//预报警系统
-					break;
-			case TIME_PRESS_VALVE:		//时间-压力调节
-					switch(*(buf + 4)){
-							case 0x01:			//设置时间对应的压力值
-									 set_time_press(buf);
+			case PRESS_MANAGE_TYPE:		//时间-压力调节
+					switch(*(buf + 2)){		//函数包类型
+							case TIME_PRESS_SETTING:				//设置时间对应的压力值
+									set_time_press(buf);
 									break;
-							case 0x03:					//设置目标阀后压力值
+							case FLOW_PRESS_SETTING:				//设置流量对应压力
+									set_flow_press(buf);
+									break;
+							case TIME_FLOW_SETTING:				//设置时间对应流量
+									set_time_flow(buf);
+									break;
+							case AFTER_VALVE_TARGET_PRESS_SETTING:				//设置目标阀后压力值
 									set_af_valve_press(buf);
 									break;
-							case 0x04:					//手动开阀
+							case TARGET_FLOW_SETTING:				//设置目标流量值
+									set_af_valve_flow(buf);
+									break;
+							case MANNUAL_OPEN_VALVE_SETTING:					//手动开阀
 									open_valve_mannual(buf);
 									break;
-							case 0x05:					//手动关阀
+							case MANNUAL_CLOSE_VALVE_SETTING:					//手动关阀
 									close_valve_mannual(buf);
 									break;
-							case 0x06:					//电磁阀控制
-								//if(电磁阀 == close){不执行自动调节程序}
-									//if(电磁阀 == open){进入自动调节程序}
-									//relay_out_dev.out(eRLYOut_CH3,false);
+							case TOTAL_BUTTON:					//电磁阀控制
 									elecmagnetic_ctrl(buf);
 									break;
-							case 0x07:					//调节区间设置
+							case ADJUST_RANGE_SETTING:					//调节区间设置
 									valve_adjust_range(buf);
+									break;
+							case AUTORUN_BUTTON:					//自动运行按钮
+									break;
+							case HALF_AUTORUN_BUTTON:					//半自动运行按钮
 									break;
 							default:
 									break;
 					}
-					break;
-			case TIME_FLOW_VALVE://时间-流量调节
 					break;
 			default: 
 					break;
@@ -223,7 +227,8 @@ void open_valve_delay(uint8_t *data)
 		
 		uint16_t delay_time = (buf[6] << 8) + buf[7];
 		//写入mem内部
-		
+		mem_dev.data->delayOpenTime = delay_time;
+		mem_dev.set_para();
 }
 
 //设置关阀延时时间
@@ -233,7 +238,11 @@ void close_valve_delay(uint8_t *data)
 		
 		uint16_t delay_time = (buf[6] << 8) + buf[7];
 		//写入mem内部
-		
+		//mem_dev.data->delayCloseTime = delay_time;
+		//mem_dev.set_para();
+#if WORKTYPE_PUMPCONTROL
+		g_pump_closedelay = delay_time;
+#endif
 }
 
 //设置关阀超时时间
@@ -243,8 +252,14 @@ void close_valve_timeout(uint8_t *data)
 		
 		uint16_t delay_time = (buf[6] << 8) + buf[7];
 		//写入mem内部
+		//mem_dev.data->closeTimeout = delay_time;
+		//mem_dev.set_para();
+#if WORKTYPE_PUMPCONTROL
+		g_pump_timeout = delay_time;
+#endif
 }
 
+//手动控制阀门
 void mannul_valve_ctrl(uint8_t *data)
 {
 		uint8_t *buf = data;
@@ -262,21 +277,75 @@ void mannul_valve_ctrl(uint8_t *data)
 		}
 }
 
+//设置自动调节
 
 //设置时间-压力对应关系
 void set_time_press(uint8_t *data)
 {
 		uint8_t *buf = data;
-		
-		uint8_t wkday = wkday 	= buf[6];												//工作日时间
-		uint8_t begin_time 			= buf[7];												//起始时间
-		uint8_t end_time 				= buf[8];												//终止时间
-		uint16_t press_value 		= (buf[9] << 8) + buf[10];			//压力值
-	
-		//写入mem存储内部
-		cld.wday = wkday;
-		cld.hour = begin_time;
-		mem_dev.data->pressueVsTime[cld.wday-1].val[cld.hour] = press_value;
+		uint8_t i = 0;
+		uint8_t bufnum					= buf[3] / 6;
+		uint8_t current_id = 0;
+		for(i = 0; i < bufnum; i++)
+		{
+				current_id = 4 + (i * 6);
+				uint8_t bufid 					= buf[current_id];
+				uint8_t wkday  					= buf[current_id + 1];
+				uint8_t begin_time 			= buf[current_id + 2];												//起始时间
+				uint8_t end_time 				= buf[current_id + 3];												//终止时间
+				uint16_t press_value 		= (buf[current_id + 4] << 8) + buf[current_id + 5];			//压力值
+			
+						//写入mem存储内部
+				mem_dev.data->pressureVsTime[cld.wday-1].cell[bufid].startTime = begin_time;
+				mem_dev.data->pressureVsTime[cld.wday-1].cell[bufid].endTime = end_time;
+				mem_dev.data->pressureVsTime[cld.wday-1].cell[bufid].val = press_value;
+				mem_dev.set_para();
+		}	
+}
+
+//设置时间-流量对应关系
+void set_time_flow(uint8_t *data)
+{
+		uint8_t *buf = data;
+		uint8_t i = 0;
+		uint8_t bufnum					= buf[3] / 6;
+		uint8_t current_id = 0;
+		for(i = 0; i < bufnum; i++)
+		{
+				current_id = 4 + (i * 6);
+				uint8_t bufid 					= buf[current_id];
+				uint8_t wkday  					= buf[current_id + 1];
+				uint8_t begin_time 			= buf[current_id + 2];												//起始时间
+				uint8_t end_time 				= buf[current_id + 3];												//终止时间
+				uint16_t press_value 		= (buf[current_id + 4] << 8) + buf[current_id + 5];			//压力值
+			
+						//写入mem存储内部
+				mem_dev.data->pressureVsTime[cld.wday-1].cell[bufid].startTime = begin_time;
+				mem_dev.data->pressureVsTime[cld.wday-1].cell[bufid].endTime = end_time;
+				mem_dev.data->pressureVsTime[cld.wday-1].cell[bufid].val = press_value;
+				mem_dev.set_para();
+		}	
+}
+//设置流量-压力对应关系
+void set_flow_press(uint8_t *data)
+{
+		uint8_t *buf = data;
+		uint8_t i = 0;
+		uint8_t bufnum					= buf[3] / 6;
+		uint8_t current_id = 0;
+		for(i = 0; i < bufnum; i++)
+		{
+				current_id = 4 + (i * 6);
+				uint8_t bufid 					= buf[current_id];
+				uint8_t flow_value 			= (buf[current_id + 1] << 8) + buf[current_id + 2];												
+				uint16_t press_value 		= (buf[current_id + 3] << 8) + buf[current_id + 4];			//压力值
+			
+						//写入mem存储内部
+				/*mem_dev.data->pressureVsTime[cld.wday-1].cell[bufid].startTime = begin_time;
+				mem_dev.data->pressureVsTime[cld.wday-1].cell[bufid].endTime = end_time;
+				mem_dev.data->pressureVsTime[cld.wday-1].cell[bufid].val = press_value;
+				mem_dev.set_para();*/
+		}	
 }
 
 //设置阀后压力值
@@ -284,9 +353,19 @@ void set_af_valve_press(uint8_t *data)
 {
 		uint8_t *buf = data;
 		
-		uint16_t press_value = (buf[6] << 8) + buf[7];
+		uint16_t press_value = (buf[4] << 8) + buf[5];
 		//写入mem存储内部
-		mem_dev.data->pressureVsFlowSet = press_value;
+		//mem_dev.data->pressureVsFlowSet = press_value;
+}
+
+//设置目标流量值
+void set_af_valve_flow(uint8_t *data)
+{
+		uint8_t *buf = data;
+		
+		uint16_t press_value = (buf[4] << 8) + buf[5];
+		//写入mem存储内部
+		//mem_dev.data->pressureVsFlowSet = press_value;
 }
 
 //手动开阀
@@ -294,14 +373,15 @@ void open_valve_mannual(uint8_t *data)
 {
 		uint8_t *buf = data;
 	
-		uint8_t state = buf[6];
+		uint8_t state = buf[4];
 		switch(buf[6]){
 			case 0x01:	//阀门向上运动
-					set_valve_opening(VALVE_STATE_UP);
+					setValveOpening(VALVE_STATE_UP);
 					break;
-			case 0xFF:	//阀门停止运动
-					set_valve_opening(VALVE_STATE_KEEP);
-					break;
+			/*case 0xFF:	//阀门停止运动
+					setValveOpening(VALVE_STATE_KEEP);
+					break;*/
+			default:break;
 		}
 }
 
@@ -309,22 +389,23 @@ void close_valve_mannual(uint8_t *data)
 {
 		uint8_t *buf = data;
 	
-		uint8_t state = buf[6];
+		uint8_t state = buf[4];
 		switch(state){
 			case 0x01:	//阀门向下运动
-					set_valve_opening(VALVE_STATE_DOWN);
+					setValveOpening(VALVE_STATE_DOWN);
 					break;
-			case 0xFF:	//阀门停止运动
-					set_valve_opening(VALVE_STATE_KEEP);
+			case 0xFF:	//阀门停止
+					setValveOpening(VALVE_STATE_UP);
 					break;
+			default:break;
 		}
 }
 
-//电磁阀控制
+//电磁阀控制——总闸开关
 void elecmagnetic_ctrl(uint8_t *data)
 {
 		uint8_t *buf = data;
-		uint8_t state = buf[6];
+		uint8_t state = buf[4];
 		switch(state){
 			case 0x01:
 				relay_out_dev.out(eRLYOut_CH3,true);
@@ -335,14 +416,20 @@ void elecmagnetic_ctrl(uint8_t *data)
 		}
 }
 
+//调节区间
 void valve_adjust_range(uint8_t *data)
 {
 		uint8_t *buf = data;
 		
-		uint8_t range = buf[6];
+		uint8_t range = buf[4];
 		g_adjust_range = range;
 }
 
+//自动按钮
+
+//半自动按钮
+
+#if 0
 unsigned short checksum(uint8_t *buffer, int size)
 {
 		unsigned long cksum = 0;
@@ -357,3 +444,4 @@ unsigned short checksum(uint8_t *buffer, int size)
 			cksum = (cksum >> 16) + (cksum & 0xffff);
 		return (unsigned short)(~cksum);
 }
+#endif

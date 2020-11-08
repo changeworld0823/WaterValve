@@ -22,6 +22,8 @@
 #include "buzzer.h"
 #include "stdio.h"
 
+#define FIREWARE_TYPE			PRE_ALARM_SYS
+#define WORKTYPE_ALARMSYS		TRUE
 struct pre_alarm_t{
   int8_t  openningDegree;
   int32_t flow;

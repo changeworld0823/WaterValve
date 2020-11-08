@@ -10,8 +10,21 @@
   *
   ******************************************************************************
   */ 
-#include "water_pump_valve_control_sys.h"
+#include "iv_in.h"
+#include "iv_out.h"
+#include "opto_in.h"
+#include "relay_out.h"
+#include "calendar.h"
 
+#include "mem.h"
+#include "piezo.h"
+#include "sound.h"
+#include "buzzer.h"
+#include "stdio.h"
+
+#include "common.h"
+#define FIREWARE_TYPE			WATER_PUMP_SYS
+#define WORKTYPE_PUMPCONTROL		TRUE
 
 /* 状态机枚举 */
 typedef enum
@@ -54,18 +67,17 @@ static uint8_t reset_set_para = 0; //用于重新设置出厂参数
 
 /* 函数声明 */
 static void water_pumb_task(void *argument);
-static void init_dev(void);
-
+static void valve_open(void);
+static void valve_close(void);
+static void valve_keep(void);
 static void pumb_close(void);
 static void pumb_release_close(void);
 static void start_button_cb(void);
 static void close_button_cb(void);
 static void open_limit_reached_cb(void);
 static void close_limit_reached_cb(void);
+static void configDev(void);
 
-void valve_open(void);
-void valve_close(void);
-void valve_keep(void);
 /* 任务创建函数 */
 void water_pumb_valve_control_task_start(void)
 {
@@ -76,19 +88,11 @@ void water_pumb_valve_control_task_start(void)
 static void water_pumb_task(void *argument)
 {
     waterPumbData.waterPumbCtrStep = STEP_WAIT_PUMB_START;
-
     /* 初始化设备 */
     init_dev();
-    /* 配置模拟输入通道1为电流输入模式 压力传感器 */
-    iv_in_dev.iv_set_mode(eIVInCH1, eIVIn_Mode_I);
-    /* 将start_button_cb注册到光耦输入通道1的下降沿信号事件 开启系统 */
-    opto_in_dev.register_edge_evt_cb(eOptoIn_CH1, eOptoIn_FaillingEdge, start_button_cb);
-    /* 将stop_button_cb注册到光耦输入通道2的下降沿信号事件 */
-    opto_in_dev.register_edge_evt_cb(eOptoIn_CH2, eOptoIn_FaillingEdge, close_button_cb);
-    /* 将open_limit_reached_cb注册到光耦输入通道3的下降沿信号事件 */
-    opto_in_dev.register_edge_evt_cb(eOptoIn_CH3, eOptoIn_FaillingEdge, open_limit_reached_cb);
-    /* 将close_limit_reached_cb注册到光耦输入通道4的下降沿信号事件 */
-    opto_in_dev.register_edge_evt_cb(eOptoIn_CH4, eOptoIn_FaillingEdge, close_limit_reached_cb);
+
+    /* 配置通道模式或类型 */
+    configDev();
 
     /* 控制系统需要保存的参数都在memData变量中。
        如果要更改参数，将reset_set_para置为不为零的值
@@ -121,7 +125,7 @@ static void water_pumb_task(void *argument)
         case STEP_OPEN_VALVE:               /* 3、倒计时结束，开启控制阀 */
             valve_open();
             /* 120秒没有检测到打开限位信号，进入超时状态 */
-            if ((HAL_GetTick()-waterPumbData.lastCountDownTick)>120000)
+            if ((HAL_GetTick()-waterPumbData.lastCountDownTick) >	g_pump_timeout)
             {
                 waterPumbData.waterPumbCtrStep = STEP_OPEN_TIME_OUT;
             }
@@ -138,7 +142,7 @@ static void water_pumb_task(void *argument)
         case STEP_CLOSE_VALVE:              /* 6、关闭控制阀 */
             valve_close();
             /* 120秒没有检测到关闭限位信号，进入超时状态 */
-            if ((HAL_GetTick()-waterPumbData.lastValveCloseTick)>120000)
+            if ((HAL_GetTick()-waterPumbData.lastValveCloseTick) > g_pump_timeout)
             {
                 waterPumbData.waterPumbCtrStep = STEP_CLOSE_TIME_OUT;
             }
@@ -149,7 +153,7 @@ static void water_pumb_task(void *argument)
             break;
         case STEP_PRE_CLOSR_PUMB:           /* 关闭水泵前延时一下 */
             /* 5秒后，关闭水泵 */
-            if ((HAL_GetTick()-waterPumbData.lastPrePumbCloseTick)>5000)
+            if ((HAL_GetTick()-waterPumbData.lastPrePumbCloseTick) > g_pump_closedelay)
             {
                 waterPumbData.waterPumbCtrStep = STEP_CLOSE_PUMB;
                 waterPumbData.lastPumbCloseTick = HAL_GetTick();
@@ -159,7 +163,7 @@ static void water_pumb_task(void *argument)
             /* 关闭水泵（继电器控制） */
             pumb_close();
             /* 5秒后，松开水泵开关 */
-            if ((HAL_GetTick()-waterPumbData.lastPumbCloseTick)>5000)
+            if ((HAL_GetTick()-waterPumbData.lastPumbCloseTick) > g_pump_closedelay)
             {
                 waterPumbData.waterPumbCtrStep = STEP_RELEASE_CLOSE_PUMB;
             }
@@ -176,47 +180,19 @@ static void water_pumb_task(void *argument)
     }
 }
 
-/* 硬件设备初始化 */
-static void init_dev(void)
+/* 配置通道的模式或类型 */
+static void configDev(void)
 {
-    eIVInStatus_t ivinStatus;
-    eIVOutStatus_t ivoutStatus;
-    /* 初始化蜂鸣器 */
-    soundInit();
-    
-    /* 初始化存储器 */
-    mem_dev.init();
-
-    /* 初始化电流电压输入设备 */
-    ivinStatus = iv_in_dev.init();
-    if(ivinStatus == eIVIn_Ok)
-    {
-        printf("IV输入设备初始化成功！\r\n");
-    }
-    else
-    {
-        printf("IV输入设备初始化失败！%d\r\n",ivinStatus);
-    }
-    
-    /* 初始化电流电压输出设备 */
-    ivoutStatus = iv_out_dev.init();
-    if(ivoutStatus == eIVOut_Ok)
-    {
-        printf("IV输出设备初始化成功！\r\n");
-    }
-    else
-    {
-        printf("IV输出设备初始化失败！%d\r\n",ivoutStatus);
-    }
-    
-    /* 初始化继电器输出设备 */
-    relay_out_dev.init();
-
-    /* 初始化光耦输入设备 */
-    opto_in_dev.init();
-    
-    /* 初始化日历 */
-    calendar_dev.init();
+    /* 配置模拟输入通道1为电流输入模式 压力传感器 */
+    iv_in_dev.iv_set_mode(eIVInCH1, eIVIn_Mode_I);
+    /* 将start_button_cb注册到光耦输入通道1的下降沿信号事件 开启系统 */
+    opto_in_dev.register_edge_evt_cb(eOptoIn_CH1, eOptoIn_FaillingEdge, start_button_cb);
+    /* 将stop_button_cb注册到光耦输入通道2的下降沿信号事件 */
+    opto_in_dev.register_edge_evt_cb(eOptoIn_CH2, eOptoIn_FaillingEdge, close_button_cb);
+    /* 将open_limit_reached_cb注册到光耦输入通道3的下降沿信号事件 */
+    opto_in_dev.register_edge_evt_cb(eOptoIn_CH3, eOptoIn_FaillingEdge, open_limit_reached_cb);
+    /* 将close_limit_reached_cb注册到光耦输入通道4的下降沿信号事件 */
+    opto_in_dev.register_edge_evt_cb(eOptoIn_CH4, eOptoIn_FaillingEdge, close_limit_reached_cb);
 }
 
 /* 按下水泵启动按钮时的回调 */
@@ -277,7 +253,4 @@ static void pumb_release_close(void)
 {
     relay_out_dev.out(eRLYOut_CH3,false);
 }
-
-
-
 
