@@ -31,7 +31,7 @@ void mannul_valve_ctrl(uint8_t *data);
 //extern UART_HandleTypeDef huart3;
 void decode_ble_recvbuf(uint8_t *data, uint8_t datasize)
 {
-		uint8_t *buf = g_uart3_recvbuf;
+		uint8_t *buf = g_uart4_recvbuf;
 		uint8_t bufsize = datasize;
 		switch(g_ble_mode){
 				case AT_CMD_MODE:								//AT模式，检查是否收到ok即可
@@ -64,8 +64,8 @@ void ble_valvelimit_encode(uint8_t *data,uint8_t type, uint8_t state)
 		temp = DATALEN_BIT + buf[DATALEN_BIT];		
 		buf[temp] = state;
 		buf[temp + 1] = 0xFF;
-		memcpy(data, buf, buf[DATALEN_BIT]+7);
-		HAL_UART_Transmit_DMA(&huart3, data, BLE_CMD_BUF_SIZE);
+		memcpy(data, buf, buf[DATALEN_BIT]+5);
+		HAL_UART_Transmit_DMA(&huart4, data, buf[DATALEN_BIT]+5);
 }
 
 /**************************************************************
@@ -85,8 +85,8 @@ void ble_valve_mannulctl_encode(uint8_t *data, uint8_t type, uint8_t state)
 		temp = DATALEN_BIT + buf[DATALEN_BIT];	
 		buf[temp] = state;
 		buf[temp + 1] = 0xFF;
-		memcpy(data, buf, buf[DATALEN_BIT]+7);
-		HAL_UART_Transmit_DMA(&huart3, data, BLE_CMD_BUF_SIZE);
+		memcpy(data, buf, buf[DATALEN_BIT]+5);
+		HAL_UART_Transmit_DMA(&huart4, data, buf[DATALEN_BIT]+5);
 }
 
 /**************************************************************
@@ -108,7 +108,7 @@ void ble_managesys_prepress_encode(uint8_t *data, uint8_t type,uint16_t pressval
 		buf[temp + 1] = pressvalue & 0xff;
 		buf[temp + 2] = 0xFF;
 		memcpy(data, buf, buf[DATALEN_BIT]+5);
-		HAL_UART_Transmit_DMA(&huart3, data, BLE_CMD_BUF_SIZE);
+		HAL_UART_Transmit_DMA(&huart4, data, buf[DATALEN_BIT]+5);
 }
 
 /**************************************************************
@@ -130,7 +130,7 @@ void ble_managesys_normaldata_encode(uint8_t *data, uint8_t type, uint16_t value
 		buf[DATALEN_BIT + 2] = (value << 8) & 0xff;
 		buf[DATALEN_BIT + buf[DATALEN_BIT] + 1] = 0xFF;
 		memcpy(data, buf, buf[DATALEN_BIT]+5);
-		HAL_UART_Transmit_DMA(&huart3, data, BLE_CMD_BUF_SIZE);
+		HAL_UART_Transmit_DMA(&huart4, data, buf[DATALEN_BIT]+5);
 }
 
 /**************************************************************
@@ -153,7 +153,7 @@ void ble_rawdata_decode(uint8_t *data, uint8_t datasize)			//蓝牙透传数据解码
 		uint8_t cksum = 0;
 		if(buf == NULL)
 				return;
-		//cksum = checksum(buf, datasize);
+		cksum = *(buf + (datasize - 1));
 		if(0xFF != *(buf + (datasize - 1))){			//对数据包进行校验和运算
 				return;
 		}

@@ -3,7 +3,7 @@
 #include "main.h"
 #include "uart.h"
 #include "string.h"
-
+#include "wh_ble.h"
 //#define debug_printf sprintf
 
 uint8_t RxDMABuf1[RX_BUFFER_SIZE];
@@ -103,8 +103,7 @@ void UART_IDLE_Callback(UART_HandleTypeDef *huart)
 			HAL_UART_Receive_DMA(&huart4, RxDMABuf4, RX_BUFFER_SIZE);
 			memset(g_uart4_recvbuf, 0, RX_BUFFER_SIZE);
 			memcpy(g_uart4_recvbuf, RxDMABuf4, DMA_Usart_RxSize4);
-			memset(RxDMABuf4,0, RX_BUFFER_SIZE);
-			//decode_ble_recvbuf(g_uart4_recvbuf, DMA_Usart_RxSize4);
+			decode_ble_recvbuf(g_uart4_recvbuf, DMA_Usart_RxSize4);
 		}
 	}
 }

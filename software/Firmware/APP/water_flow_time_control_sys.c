@@ -81,7 +81,9 @@ static void water_flow_time_task(void *argument)
 
     /* 配置通道模式或类型 */
     configDev();
-
+		HAL_GPIO_WritePin(BLE_RST_GPIO_Port, BLE_RST_Pin, GPIO_PIN_RESET);
+		osDelay(1000);
+		HAL_GPIO_WritePin(BLE_RST_GPIO_Port, BLE_RST_Pin, GPIO_PIN_SET);
     /* 如果要改时间，将set_calendar_control置为不为零的值 
        注意：wday是从1开始的，1代表周日，2代表周一。。。
     */
