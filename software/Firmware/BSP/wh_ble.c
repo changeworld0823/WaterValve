@@ -31,7 +31,11 @@ void mannul_valve_ctrl(uint8_t *data);
 //extern UART_HandleTypeDef huart3;
 void decode_ble_recvbuf(uint8_t *data, uint8_t datasize)
 {
+	#if USE_LTE_UART_AS_BLE
+		uint8_t *buf = g_uart3_recvbuf;
+	#else
 		uint8_t *buf = g_uart4_recvbuf;
+	#endif
 		uint8_t bufsize = datasize;
 		switch(g_ble_mode){
 				case AT_CMD_MODE:								//AT模式，检查是否收到ok即可
@@ -65,7 +69,11 @@ void ble_valvelimit_encode(uint8_t *data,uint8_t type, uint8_t state)
 		buf[temp] = state;
 		buf[temp + 1] = 0xFF;
 		memcpy(data, buf, buf[DATALEN_BIT]+5);
+		#if USE_LTE_UART_AS_BLE
+		HAL_UART_Transmit_DMA(&huart3, data, buf[DATALEN_BIT]+5);
+		#else
 		HAL_UART_Transmit_DMA(&huart4, data, buf[DATALEN_BIT]+5);
+		#endif
 }
 
 /**************************************************************
@@ -86,7 +94,11 @@ void ble_valve_mannulctl_encode(uint8_t *data, uint8_t type, uint8_t state)
 		buf[temp] = state;
 		buf[temp + 1] = 0xFF;
 		memcpy(data, buf, buf[DATALEN_BIT]+5);
+		#if USE_LTE_UART_AS_BLE
+		HAL_UART_Transmit_DMA(&huart3, data, buf[DATALEN_BIT]+5);
+		#elif
 		HAL_UART_Transmit_DMA(&huart4, data, buf[DATALEN_BIT]+5);
+		#endif
 }
 
 /**************************************************************
@@ -108,7 +120,11 @@ void ble_managesys_prepress_encode(uint8_t *data, uint8_t type,uint16_t pressval
 		buf[temp + 1] = pressvalue & 0xff;
 		buf[temp + 2] = 0xFF;
 		memcpy(data, buf, buf[DATALEN_BIT]+5);
+		#if USE_LTE_UART_AS_BLE
+		HAL_UART_Transmit_DMA(&huart3, data, buf[DATALEN_BIT]+5);
+		#elif
 		HAL_UART_Transmit_DMA(&huart4, data, buf[DATALEN_BIT]+5);
+		#endif
 }
 
 /**************************************************************
@@ -130,7 +146,11 @@ void ble_managesys_normaldata_encode(uint8_t *data, uint8_t type, uint16_t value
 		buf[DATALEN_BIT + 2] = (value << 8) & 0xff;
 		buf[DATALEN_BIT + buf[DATALEN_BIT] + 1] = 0xFF;
 		memcpy(data, buf, buf[DATALEN_BIT]+5);
+		#if USE_LTE_UART_AS_BLE
+		HAL_UART_Transmit_DMA(&huart3, data, buf[DATALEN_BIT]+5);
+		#elif
 		HAL_UART_Transmit_DMA(&huart4, data, buf[DATALEN_BIT]+5);
+		#endif
 }
 
 /**************************************************************
