@@ -35,6 +35,14 @@ typedef enum{
 #define AT_CMD_DATA_LEN					1024
 #define AT_CMD_NETWORK					"AT+WKMOD"
 #define AT_CMD_RAWMODE					"NET"
+#define AT_CMD_SOCK_EN					"AT+SOCKAEN"
+#define AT_CMD_ENABLE						"ON"
+#define AT_CMD_SOCK_ASL					"AT+SOCKASL"
+#define AT_CMD_LONG							"LONG"
+#define AT_CMD_SOCK							"AT+SOCKA"
+#define AT_CMD_IP								"a12EOnXtII4.iot-as-mqtt.cn-shanghai.aliyuncs.com"
+#define AT_CMD_COM							1883
+#define AT_CMD_RESET						"AT+Z"
 #define AT_CMD_SUCCESS_RSP			"OK"
 
 void LTE_SetState(UART_HandleTypeDef *huart, eD_LTE_STATE state);		//设置模块进入配置状态

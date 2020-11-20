@@ -21,9 +21,6 @@
 /* 初始化 */
 eCalendarStatus_t calendar_init(void)
 {
-    uint8_t mode = 0;
-    uint8_t enable = 0;
-
     if(ds3231_init()==0)
     {
         return eCalendar_InitFail;  /* 初始化失败 */

@@ -93,21 +93,27 @@ eMemStatus_t memDataOP (eMemAddrSel_t addr, void *p, memDataOpType op)
             return eMem_OpFail;
         }
       break;
-      case eMemAddr_DelayOpenTime:        /* 延时开关时间参数地址 */
+      case eMemAddr_DelayOpenTimeSet:        /* 延时开关时间参数地址 */
         if(p_dataOP (p,addr, sizeof(memData.delayOpenTime))==0x00)
         {
             return eMem_OpFail;
         }
       break;
-      case eMemAddr_PressueVsTime:        /* 压力时间参数地址 */
-        if(p_dataOP (p,addr, sizeof(memData.pressueVsTime))==0x00)
+      case eMemAddr_PressueVsTimeSet:        /* 压力时间参数地址 */
+        if(p_dataOP (p,addr, sizeof(memData.pressureVsTime))==0x00)
         {
             return eMem_OpFail;
         }
       break;
-      case eMemAddr_PressureVsFlowSet:    /* 压力流量参数地址 */
-        if(p_dataOP (p,addr, sizeof(memData.pressureVsFlowSet))==0x00)
+      case eMemAddr_FlowVsTimeSet:          /* 流量时间参数地址 */
+        if(p_dataOP (p,addr, sizeof(memData.pressureVsTime))==0x00)
         {
+            return eMem_OpFail;
+        }
+      break;
+      case eMemAddr_PressureVsFlowSet:      /* 流量压力参数地址 */
+        if(p_dataOP (p,addr, sizeof(memData.pressureVsFlow))==0x00)
+        {                                                
             return eMem_OpFail;
         }
       break;
@@ -150,32 +156,101 @@ eMemStatus_t memForceSetToFactory(void)
     }
 
     /* 恢复延时开关时间默认值 */
-    memData.delayOpenTime = DEFAULT_DelayOpenTime_VAL;
-    if(data_op(eMemAddr_DelayOpenTime, &memData.delayOpenTime)!=eMem_Ok)
+    memData.delayOpenTime = DEFAULT_DelayOpenTimeSet_VAL;
+    if(data_op(eMemAddr_DelayOpenTimeSet, &memData.delayOpenTime)!=eMem_Ok)
     {
         return eMem_WriteFail;
     }
 
-    /* 恢复压力时间默认值 */
+    /* 恢复压力-时间默认值 */
     for(int i=0;
-        i<sizeof(memData.pressueVsTime)/sizeof(memData.pressueVsTime[0]);
+        i<sizeof(memData.pressureVsTime)/sizeof(memData.pressureVsTime[0]);
         i++)
     {
         for(int j=0;
-            j<sizeof(memData.pressueVsTime[0])/sizeof(memData.pressueVsTime[j].val[0]);
+            j<sizeof(memData.pressureVsTime[0])/sizeof(memData.pressureVsTime[j].cell[0]);
             j++)
         {
-            memData.pressueVsTime[i].val[j] = DEFAULT_PressueVsTime_VAL;
+            memData.pressureVsTime[i].cell[j].val        = DEFAULT_PressueVsTimeSet_val_VAL;
+            memData.pressureVsTime[i].cell[j].startTime  = DEFAULT_PressueVsTimeSet_startTime_VAL;
+            memData.pressureVsTime[i].cell[j].endTime    = DEFAULT_PressueVsTimeSet_endTime_VAL;
         }
     }
-    if(data_op(eMemAddr_PressueVsTime, &memData.pressueVsTime)!=eMem_Ok)
+    if(data_op(eMemAddr_PressueVsTimeSet, &memData.pressureVsTime)!=eMem_Ok)
+    {
+        return eMem_WriteFail;
+    }
+
+    /* 恢复流量-时间默认值 */
+    for(int i=0;
+        i<sizeof(memData.flowVsTime)/sizeof(memData.flowVsTime[0]);
+        i++)
+    {
+        for(int j=0;
+            j<sizeof(memData.flowVsTime[0])/sizeof(memData.flowVsTime[j].cell[0]);
+            j++)
+        {
+            memData.flowVsTime[i].cell[j].val        = DEFAULT_FlowVsTimeSet_val_VAL;
+            memData.flowVsTime[i].cell[j].startTime  = DEFAULT_FlowVsTimeSet_startTime_VAL;
+            memData.flowVsTime[i].cell[j].endTime    = DEFAULT_FlowVsTimeSet_endTime_VAL;
+        }
+    }
+    if(data_op(eMemAddr_FlowVsTimeSet, &memData.flowVsTime)!=eMem_Ok)
     {
         return eMem_WriteFail;
     }
     
-    /* 恢复压力流量默认参数 */
-    memData.pressureVsFlowSet = DEFAULT_PressureVsFlowSet_VAL;
-    if(data_op(eMemAddr_PressueVsTime, &memData.pressureVsFlowSet)!=eMem_Ok)
+
+
+    /* 恢复流量-压力默认值 */
+    for(int j=0;
+        j<sizeof(memData.pressureVsFlow.cell)/sizeof(memData.pressureVsFlow.cell[0]);
+        j++)
+    {
+        memData.pressureVsFlow.cell[j].pressureVal  = DEFAULT_PressureVsFlowSet_pressureVal_VAL;
+        memData.pressureVsFlow.cell[j].startFlow    = DEFAULT_PressureVsFlowSet_startFlow_VAL;
+        memData.pressureVsFlow.cell[j].endFlow      = DEFAULT_PressureVsFlowSet_endFlow_VAL;
+    }
+    if(data_op(eMemAddr_PressureVsFlowSet, &memData.pressureVsFlow)!=eMem_Ok)
+    {
+        return eMem_WriteFail;
+    }
+
+    return eMem_Ok;
+}
+
+/* 重新设置参数 */
+eMemStatus_t memSetPara(void)
+{   
+#undef  data_op
+#define data_op(x,y)    memDataOP(x,y,MEM_WRITE)
+
+    uint8_t val = 0x55;
+    if(memWriteData(eMemAddr_FactoryOnceLock, &val)!=eMem_Ok)
+    {
+        return eMem_WriteFail;
+    }
+
+    /* 设置延时开关时间参数 */
+    if(data_op(eMemAddr_DelayOpenTimeSet, &memData.delayOpenTime)!=eMem_Ok)
+    {
+        return eMem_WriteFail;
+    }
+
+    /* 设置压力时间参数 */
+    if(data_op(eMemAddr_PressueVsTimeSet, &memData.pressureVsTime)!=eMem_Ok)
+    {
+        return eMem_WriteFail;
+    }
+
+    /* 设置流量时间参数 */
+    if(data_op(eMemAddr_FlowVsTimeSet, &memData.flowVsTime)!=eMem_Ok)
+    {
+        return eMem_WriteFail;
+    }
+    
+    /* 设置压力流量参数 */
+    if(data_op(eMemAddr_PressureVsFlowSet, &memData.pressureVsFlow)!=eMem_Ok)
     {
         return eMem_WriteFail;
     }
@@ -190,19 +265,25 @@ eMemStatus_t memReadSet(void)
 #define data_op(x,y)    memDataOP(x,y,MEM_READ)
 
     /* 读取延时开关时间默认值 */
-    if(data_op(eMemAddr_DelayOpenTime, &memData.delayOpenTime)!=eMem_Ok)
+    if(data_op(eMemAddr_DelayOpenTimeSet, &memData.delayOpenTime)!=eMem_Ok)
     {
         return eMem_ReadFail;
     }
 
     /* 读取压力时间默认值 */
-    if(data_op(eMemAddr_PressueVsTime, &memData.pressueVsTime)!=eMem_Ok)
+    if(data_op(eMemAddr_PressueVsTimeSet, &memData.pressureVsTime)!=eMem_Ok)
+    {
+        return eMem_ReadFail;
+    }
+
+    /* 读取流量时间默认值 */
+    if(data_op(eMemAddr_FlowVsTimeSet, &memData.flowVsTime)!=eMem_Ok)
     {
         return eMem_ReadFail;
     }
 
     /* 读取压力流量参数 */
-    if(data_op(eMemAddr_PressueVsTime, &memData.pressureVsFlowSet)!=eMem_Ok)
+    if(data_op(eMemAddr_PressureVsFlowSet, &memData.pressureVsFlow)!=eMem_Ok)
     {
         return eMem_ReadFail;
     }
@@ -217,6 +298,7 @@ const sMemDev_t mem_dev =
     .write = memWriteData,
     .read = memReadData,
     .factory_reset = memForceSetToFactory,
+    .set_para = memSetPara,
     .data = &memData,
 };
 

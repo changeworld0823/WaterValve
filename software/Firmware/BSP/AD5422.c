@@ -34,9 +34,6 @@ void AD5422_Delay(int length)
 /* 写24位数据 */
 void AD5422_Write24Bits(uint32_t data)
 {
-
-    uint32_t ValueToWrite = data;
-    unsigned char i = 0;
     uint8_t valWr[3];
     valWr[0] = data>>16;
     valWr[1] = data>>8;
@@ -58,8 +55,6 @@ void AD5422_Write24Bits(uint32_t data)
 /* 读取24位数据 */
 uint32_t AD5422_Read24Bits(void)
 {
-    uint8_t   i = 0;
-    uint8_t   temp_data = 0;
     uint32_t  read_data = 0;
     uint8_t   valRd[3];
 
@@ -191,7 +186,6 @@ uint16_t AD5422_ReadDataReg(void)
 {
     uint32_t temp = 0;
     sAD5422ShiftReg_t shftReg;
-    uint16_t data = 0;
 
     //读取控制寄存器
     shftReg.RegAddr   = AD5422_READBACK_ADDR;
@@ -250,7 +244,7 @@ uint16_t AD5410_SetOutPutCurrent(float current)
     uint16_t current_num = 0;
 
     //设置输出电流
-    current_num = Current_ConvertTo_Number(current, ctrRegVal.OutPutRange);
+    current_num = Current_ConvertTo_Number(current, (eCtrOutPutTypeSel_t)ctrRegVal.OutPutRange);
     AD5422_WriteDataReg(current_num);
     
     return current_num;
@@ -259,8 +253,6 @@ uint16_t AD5410_SetOutPutCurrent(float current)
 /* 设置AD5422的输出类型 */
 sControlRegValMap_t AD5410_SetOutPutType(eCtrOutPutTypeSel_t OutType)
 {
-    uint16_t current_num = 0;
-
     ctrRegVal.OUTEN = ENABLE;
     ctrRegVal.OutPutRange = OutType;
     ctrRegVal.REXT = ENABLE;

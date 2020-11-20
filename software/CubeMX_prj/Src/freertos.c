@@ -25,7 +25,7 @@
 #include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */     
+/* USER CODE BEGIN Includes */
 #include "usart.h"
 #include "dev_sign_api.h"
 #include "mqtt_api.h"
@@ -275,6 +275,7 @@ void StartDefaultTask(void const * argument)
 		}
 		IOT_MQTT_Yield(pclient, 200);
 		loop_cnt += 1;
+		
     osDelay(10);
   }
   /* USER CODE END StartDefaultTask */

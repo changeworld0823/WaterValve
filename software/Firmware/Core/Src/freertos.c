@@ -80,6 +80,7 @@ void StartTest(void *argument);
 __weak void water_pumb_valve_control_task_start(void) { return; }
 __weak void pre_alarm_system_task_start(void) { return; }
 __weak void water_press_time_control_task_start(void) { return; }
+__weak void water_flow_time_control_task_start(void) { return; }
 __weak void water_press_flow_control_task_start(void) { return; }
 
 void startAPP(void)
@@ -93,7 +94,9 @@ void startAPP(void)
   pre_alarm_system_task_start();
   /* 水压-时间控制 */
   water_press_time_control_task_start();
-  /* 水压-流量 */
+  /* 流量-时间控制 */
+  water_flow_time_control_task_start();
+  /* 水压-流量控制 */
   water_press_flow_control_task_start();
 }
 
