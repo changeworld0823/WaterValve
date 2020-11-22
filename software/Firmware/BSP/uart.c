@@ -76,7 +76,7 @@ void UART_IDLE_Callback(UART_HandleTypeDef *huart)
 			HAL_UART_Receive_DMA(&huart1, RxDMABuf1, RX_BUFFER_SIZE);
 			memset(g_uart1_recvbuf, 0, RX_BUFFER_SIZE);
 			memcpy(g_uart1_recvbuf, RxDMABuf1, RxBufSize1);
-			//decode_lte_recvbuf(g_uart1_recvbuf, RxBufSize1);
+			decode_ble_recvbuf(g_uart1_recvbuf, DMA_Usart_RxSize1);
 		}
 		else if(huart->Instance == USART3){
 			DMA_Usart_RxSize3 = RX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart3_rx);

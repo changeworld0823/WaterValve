@@ -32,7 +32,7 @@ void mannul_valve_ctrl(uint8_t *data);
 void decode_ble_recvbuf(uint8_t *data, uint8_t datasize)
 {
 	#if USE_LTE_UART_AS_BLE
-		uint8_t *buf = g_uart3_recvbuf;
+		uint8_t *buf = g_uart1_recvbuf;
 	#else
 		uint8_t *buf = g_uart4_recvbuf;
 	#endif
@@ -147,7 +147,7 @@ void ble_managesys_normaldata_encode(uint8_t *data, uint8_t type, uint16_t value
 		buf[DATALEN_BIT + buf[DATALEN_BIT] + 1] = 0xFF;
 		memcpy(data, buf, buf[DATALEN_BIT]+5);
 		#if USE_LTE_UART_AS_BLE
-		HAL_UART_Transmit_DMA(&huart3, data, buf[DATALEN_BIT]+5);
+		HAL_UART_Transmit_DMA(&huart1, data, buf[DATALEN_BIT]+5);
 		#elif
 		HAL_UART_Transmit_DMA(&huart4, data, buf[DATALEN_BIT]+5);
 		#endif
