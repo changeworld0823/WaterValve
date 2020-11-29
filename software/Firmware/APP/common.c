@@ -33,7 +33,7 @@ void init_dev(void)
 		sCalendar_t calendar_t;
     /* 初始化蜂鸣器 */
     soundInit();
-    
+
     /* 初始化存储器 */
     mem_dev.init();
 
@@ -90,10 +90,22 @@ void setValveActionWithOpening(float Opening)
 #endif
 }
 
+/* 误差值 */
+__weak float getTolerance(void)
+{
+    return 0;
+}
+
 /* 设置开度 */
 void setValveActionWithERR(float ERR)
 {
 #if defined(USE_RLY_OUT)
+  
+    if(ERR<=getTolerance())
+    {
+        ERR = 0;
+    }
+
 		int action;
     if(ERR>0)
     {

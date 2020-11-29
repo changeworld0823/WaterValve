@@ -135,14 +135,9 @@ static void water_flow_time_task(void *argument)
             continue;
         }
         waterFlowTimeData.viewFlow = flow;
-				if(g_save_flag)
-				{
-						mem_dev.set_para();
-						g_save_flag = 0;
-				}
  
-        //memset(ble_data, 0, sizeof(ble_data));
-        //ble_managesys_normaldata_encode(ble_data, AFTER_VALVE_PRESS, 100);//waterFlowTimeData.viewFlow);//蓝牙数据打包，数据发送调试在这个函数里面修改
+        memset(ble_data, 0, sizeof(ble_data));
+        ble_managesys_normaldata_encode(ble_data, VALVE_FLOW, waterFlowTimeData.viewFlow);
  
 //        ble_managesys_normaldata_encode(ble_data, 0x02, waterFlowTimeData.pressure);
         /* 与压力时间数组比较 
@@ -159,29 +154,29 @@ static void water_flow_time_task(void *argument)
         uint16_t nowTime = 0;
         nowTime = cld.hour*100+cld.min;   //当前时间转换为类似这样的格式：1530（15点30分）
         
-        sFlowVsTime_t *pTable = NULL;
+        struct FlowVsTimeItem *pTable = NULL;
         if((cld.wday==1)||(cld.wday==7))  //周末
         {
-            pTable = &mem_dev.data->flowVsTime[1];
+            pTable = &mem_dev.data->flowVsTime.cell[1][0];
         }
         else //工作日
         {
-            pTable = &mem_dev.data->flowVsTime[0];
+            pTable = &mem_dev.data->flowVsTime.cell[0][0];
         }
         bool exeCtl = false;
-        for(int j=0;j<12;j++)
+        for(int j=0;j<sizeof(mem_dev.data->flowVsTime.cell[0])/sizeof(mem_dev.data->flowVsTime.cell[0][0]);j++)
         {
             //判断值是否有效
-            if((pTable->cell[j].startTime==QY_DEFAULT_NOMEANING)
-							||(pTable->cell[j].endTime==QY_DEFAULT_NOMEANING)
-							||(pTable->cell[j].val==QY_DEFAULT_NOMEANING))
+            if((pTable[j].startTime==QY_DEFAULT_NOMEANING)
+							||(pTable[j].endTime==QY_DEFAULT_NOMEANING)
+							||(pTable[j].val==QY_DEFAULT_NOMEANING))
             {
                 continue;
             }
             //在时间范围内
-            if((nowTime>=pTable->cell[j].startTime)&&(nowTime<=pTable->cell[j].endTime))
+            if((nowTime>=pTable[j].startTime)&&(nowTime<=pTable[j].endTime))
             {
-                flowSet = pTable->cell[j].val;
+                flowSet = pTable[j].val;
                 exeCtl = true;
 						   	break;
             }
@@ -258,4 +253,10 @@ static uint8_t getFlow(uint16_t *Flow)
     waterFlowTimeData.viewFlowMA =Ima;
    
     return 1;
+}
+
+/* 返回允许的误差值 */
+float getTolerance(void)
+{
+    return memData.flowVsTime.tolerance;
 }

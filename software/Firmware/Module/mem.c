@@ -164,18 +164,19 @@ eMemStatus_t memForceSetToFactory(void)
 
     /* 恢复压力-时间默认值 */
     for(int i=0;
-        i<sizeof(memData.pressureVsTime)/sizeof(memData.pressureVsTime[0]);
+        i<sizeof(memData.pressureVsTime.cell)/sizeof(memData.pressureVsTime.cell[0]);
         i++)
     {
         for(int j=0;
-            j<sizeof(memData.pressureVsTime[0])/sizeof(memData.pressureVsTime[j].cell[0]);
+            j<sizeof(memData.pressureVsTime.cell[0])/sizeof(memData.pressureVsTime.cell[0][j]);
             j++)
         {
-            memData.pressureVsTime[i].cell[j].val        = DEFAULT_PressueVsTimeSet_val_VAL;
-            memData.pressureVsTime[i].cell[j].startTime  = DEFAULT_PressueVsTimeSet_startTime_VAL;
-            memData.pressureVsTime[i].cell[j].endTime    = DEFAULT_PressueVsTimeSet_endTime_VAL;
+            memData.pressureVsTime.cell[i][j].val        = DEFAULT_PressueVsTimeSet_val_VAL;
+            memData.pressureVsTime.cell[i][j].startTime  = DEFAULT_PressueVsTimeSet_startTime_VAL;
+            memData.pressureVsTime.cell[i][j].endTime    = DEFAULT_PressueVsTimeSet_endTime_VAL;
         }
     }
+    memData.pressureVsTime.tolerance = DEFAULT_PressueVsTimeSet_tolerance_VAL;
     if(data_op(eMemAddr_PressueVsTimeSet, &memData.pressureVsTime)!=eMem_Ok)
     {
         return eMem_WriteFail;
@@ -183,24 +184,23 @@ eMemStatus_t memForceSetToFactory(void)
 
     /* 恢复流量-时间默认值 */
     for(int i=0;
-        i<sizeof(memData.flowVsTime)/sizeof(memData.flowVsTime[0]);
+        i<sizeof(memData.flowVsTime.cell)/sizeof(memData.flowVsTime.cell[0]);
         i++)
     {
         for(int j=0;
-            j<sizeof(memData.flowVsTime[0])/sizeof(memData.flowVsTime[j].cell[0]);
+            j<sizeof(memData.flowVsTime.cell[0])/sizeof(memData.flowVsTime.cell[0][j]);
             j++)
         {
-            memData.flowVsTime[i].cell[j].val        = DEFAULT_FlowVsTimeSet_val_VAL;
-            memData.flowVsTime[i].cell[j].startTime  = DEFAULT_FlowVsTimeSet_startTime_VAL;
-            memData.flowVsTime[i].cell[j].endTime    = DEFAULT_FlowVsTimeSet_endTime_VAL;
+            memData.flowVsTime.cell[i][j].val        = DEFAULT_FlowVsTimeSet_val_VAL;
+            memData.flowVsTime.cell[i][j].startTime  = DEFAULT_FlowVsTimeSet_startTime_VAL;
+            memData.flowVsTime.cell[i][j].endTime    = DEFAULT_FlowVsTimeSet_endTime_VAL;
         }
     }
+    memData.flowVsTime.tolerance = DEFAULT_FlowVsTimeSet_tolerance_VAL;
     if(data_op(eMemAddr_FlowVsTimeSet, &memData.flowVsTime)!=eMem_Ok)
     {
         return eMem_WriteFail;
     }
-    
-
 
     /* 恢复流量-压力默认值 */
     for(int j=0;
@@ -301,4 +301,3 @@ const sMemDev_t mem_dev =
     .set_para = memSetPara,
     .data = &memData,
 };
-

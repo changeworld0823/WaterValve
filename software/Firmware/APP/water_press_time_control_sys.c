@@ -158,28 +158,28 @@ static void water_press_time_task(void *argument)
 						uint16_t nowTime = 0;
 						nowTime = cld.hour*100+cld.min;   //当前时间转换为类似这样的格式：1530（15点30分）
 						
-						sPressureVsTime_t *pTable = NULL;
+						struct PressureVsTimeItem *pTable = NULL;
 						if((cld.wday==1)||(cld.wday==7))  //周末
 						{
-								pTable = &mem_dev.data->pressureVsTime[1];
+								pTable = &mem_dev.data->pressureVsTime.cell[1][0];
 						}
 						else //工作日
 						{
-								pTable = &mem_dev.data->pressureVsTime[0];
+								pTable = &mem_dev.data->pressureVsTime.cell[0][0];
 						}
 						
 						bool exeCtl = false;
-						for(int j=0;j<12;j++)
+						for(int j=0;j<sizeof(mem_dev.data->pressureVsTime.cell[0])/sizeof(mem_dev.data->pressureVsTime.cell[0][0]);j++)
 						{							
 								//判断值是否有效
-								if((pTable->cell[j].startTime==0xffff)||(pTable->cell[j].endTime==0xffff)||(pTable->cell[j].val==0xffff))
+								if((pTable[j].startTime==0xffff)||(pTable[j].endTime==0xffff)||(pTable[j].val==0xffff))
 								{
 										continue;
 								}
 								//在时间范围内
-								if((nowTime>=pTable->cell[j].startTime)&&(nowTime<=pTable->cell[j].endTime))
+								if((nowTime>=pTable[j].startTime)&&(nowTime<=pTable[j].endTime))
 								{
-										pressureSet = pTable->cell[j].val;
+										pressureSet = pTable[j].val;
 									
 										waterPressTimeData.viewNowIdx = j;
 										waterPressTimeData.viewNowTime = nowTime;
@@ -290,4 +290,10 @@ static uint8_t getPressureIn(uint16_t *Flow)
     waterPressTimeData.viewPressureInMA = Ima;
 
     return 1;
+}
+
+/* 返回允许的误差值 */
+float getTolerance(void)
+{
+    return memData.pressureVsTime.tolerance;
 }

@@ -41,5 +41,7 @@ extern uint8_t g_control_type;
 void init_dev(void);
 
 void manualSetValve(int Action);
+void setValveActionWithERR(float ERR);
+void setValveActionWithOpening(float Opening);
 
 #endif

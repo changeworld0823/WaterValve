@@ -40,7 +40,8 @@ struct PressureVsTimeItem
 };
 typedef struct
 {
-    struct PressureVsTimeItem cell[12]; /* 最多12个时间段设置 */
+    struct PressureVsTimeItem cell[2][12]; /* cell[0]工作日，cell[1]周末，周末最多12个时间段设置 */
+    uint16_t tolerance;                    /* 允许的误差值 */
 } sPressureVsTime_t;
 
 /* 压力-时间数组 */
@@ -52,14 +53,15 @@ struct FlowVsTimeItem
 };
 typedef struct
 {
-    struct FlowVsTimeItem cell[12];  /* 最多12个时间段设置 */
+    struct FlowVsTimeItem cell[2][12];  /* cell[0]工作日，cell[1]周末, 最多12个时间段设置 */
+    uint16_t tolerance;                 /* 允许的误差值 */
 } sFlowVsTime_t;
 
 /* 流量-压力数组 */
 struct PressureVsFlowItem
 {
     uint16_t pressureVal;
-    uint16_t startFlow;
+    uint16_t startFlow;                             
     uint16_t endFlow;
 };
 typedef struct
@@ -72,8 +74,8 @@ typedef struct
 {
     uint8_t  factoryOnceLock;             /* 用于存储器出厂初始化一次 */
     uint16_t delayOpenTime;               /* 延时开启时间 */
-    sPressureVsTime_t pressureVsTime[2];   /* 压力vs时间值，FlowVsTime[0]工作日，FlowVsTime[1]周末 */
-    sFlowVsTime_t flowVsTime[2];          /* 流量vs时间，FlowVsTime[0]工作日，FlowVsTime[1]周末 */
+    sPressureVsTime_t pressureVsTime;     /* 压力vs时间值， */
+    sFlowVsTime_t flowVsTime;             /* 流量vs时间， */
     sPressureVsFlow_t pressureVsFlow;     /* 压力-流量 */
 } sMemData_t;
 
@@ -95,11 +97,13 @@ typedef enum {
 #define DEFAULT_PressueVsTimeSet_val_VAL        	QY_DEFAULT_NOMEANING    /* Kpa？Mpa？单位根据传感器而定 */
 #define DEFAULT_PressueVsTimeSet_startTime_VAL  	QY_DEFAULT_NOMEANING    /* 无效值 */
 #define DEFAULT_PressueVsTimeSet_endTime_VAL    	QY_DEFAULT_NOMEANING    /* 无效值 */
+#define DEFAULT_PressueVsTimeSet_tolerance_VAL    0                       /* Kpa？Mpa？单位根据传感器而定 */
 
 /* 流量-时间的默认设置值 */
 #define DEFAULT_FlowVsTimeSet_val_VAL           	QY_DEFAULT_NOMEANING    /* 单位待定。单位根据传感器而定 */
 #define DEFAULT_FlowVsTimeSet_startTime_VAL     	QY_DEFAULT_NOMEANING    /* 无效值 */
 #define DEFAULT_FlowVsTimeSet_endTime_VAL       	QY_DEFAULT_NOMEANING    /* 无效值 */
+#define DEFAULT_FlowVsTimeSet_tolerance_VAL       0                       /* Kpa？Mpa？单位根据传感器而定 */
 
 /* 流量-压力的默认设置值 */
 #define DEFAULT_PressureVsFlowSet_pressureVal_VAL  QY_DEFAULT_NOMEANING    /* 无效值 */
