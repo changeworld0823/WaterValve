@@ -232,6 +232,9 @@ void ble_rawdata_decode(uint8_t *data, uint8_t datasize)			//蓝牙透传数据解码
 									break;
 							case HALF_AUTORUN_BUTTON:					//半自动运行按钮
 									break;
+							case DATA_SYNC_BUTTON:					//数据同步按钮
+								
+									break;
 							default:
 									break;
 					}
@@ -439,9 +442,8 @@ void elecmagnetic_ctrl(uint8_t *data)
 void valve_adjust_range(uint8_t *data)
 {
 		uint8_t *buf = data;
-		
-		uint8_t range = buf[4];
-		g_adjust_range = range;
+		mem_dev.data->pressureVsTime.tolerance = buf[4];
+		mem_dev.data->flowVsTime.tolerance = buf[4];
 }
 
 //自动按钮

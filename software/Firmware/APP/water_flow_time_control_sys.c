@@ -265,7 +265,7 @@ static uint8_t getFlow(uint16_t *Flow)
 }
 
 /* 返回允许的误差值 */
-float getTolerance(void)
+uint16_t getTolerance(void)
 {
     return memData.flowVsTime.tolerance;
 }
