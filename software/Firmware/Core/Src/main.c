@@ -57,8 +57,8 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart3;
 DMA_HandleTypeDef hdma_uart4_rx;
 DMA_HandleTypeDef hdma_uart4_tx;
-DMA_HandleTypeDef hdma_usart1_tx;
 DMA_HandleTypeDef hdma_usart1_rx;
+DMA_HandleTypeDef hdma_usart1_tx;
 DMA_HandleTypeDef hdma_usart3_rx;
 DMA_HandleTypeDef hdma_usart3_tx;
 */
@@ -76,6 +76,10 @@ const osThreadAttr_t defaultTask_attributes = {
 osSemaphoreId_t myI2C2BinarySemHandle;
 const osSemaphoreAttr_t myI2C2BinarySem_attributes = {
   .name = "myI2C2BinarySem"
+};
+osSemaphoreId_t relayOutBinarySemHandle;
+const osSemaphoreAttr_t relayOutBinarySem_attributes = {
+  .name = "relayOutBinarySem"
 };
 /* USER CODE END PV */
 
@@ -157,6 +161,7 @@ int main(void)
   /* Create the semaphores(s) */
   /* creation of myI2C2BinarySem */
   myI2C2BinarySemHandle = osSemaphoreNew(1, 1, &myI2C2BinarySem_attributes);
+  relayOutBinarySemHandle = osSemaphoreNew(1, 1, &relayOutBinarySem_attributes);
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
@@ -454,7 +459,7 @@ static void MX_UART4_Init(void)
 
   /* USER CODE END UART4_Init 1 */
   huart4.Instance = UART4;
-  huart4.Init.BaudRate = 9600;
+  huart4.Init.BaudRate = 115200;
   huart4.Init.WordLength = UART_WORDLENGTH_8B;
   huart4.Init.StopBits = UART_STOPBITS_1;
   huart4.Init.Parity = UART_PARITY_NONE;
@@ -534,7 +539,8 @@ static void MX_USART2_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART2_Init 2 */
-
+	//__HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE);
+	//HAL_UART_Receive_DMA(&huart2,RxDMABuf2,RX_BUFFER_SIZE);
   /* USER CODE END USART2_Init 2 */
 
 }
@@ -555,7 +561,7 @@ static void MX_USART3_UART_Init(void)
 
   /* USER CODE END USART3_Init 1 */
   huart3.Instance = USART3;
-  huart3.Init.BaudRate = 9600;
+  huart3.Init.BaudRate = 57600;
   huart3.Init.WordLength = UART_WORDLENGTH_8B;
   huart3.Init.StopBits = UART_STOPBITS_1;
   huart3.Init.Parity = UART_PARITY_NONE;

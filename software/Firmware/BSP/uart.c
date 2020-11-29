@@ -55,6 +55,8 @@ int fputc(int ch,FILE *p) //?????,???printf???????
     return ch;
 }
 
+
+/*串口中断处理函数，接收到数据会进入这里进行解码*/
 void UART_IDLE_Callback(UART_HandleTypeDef *huart)
 {
 	uint32_t temp;
@@ -65,7 +67,7 @@ void UART_IDLE_Callback(UART_HandleTypeDef *huart)
 		temp = huart->Instance->DR;
 		temp = temp;
 		HAL_UART_DMAStop(huart);
-		if(huart->Instance == USART1)
+		if(huart->Instance == USART1)		//对应串口1
 		{
 			DMA_Usart_RxSize1 = RX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);
 			if(DMA_Usart_RxSize1 > 1 && RxBuf_LOCK1 ==0)
@@ -76,7 +78,10 @@ void UART_IDLE_Callback(UART_HandleTypeDef *huart)
 			HAL_UART_Receive_DMA(&huart1, RxDMABuf1, RX_BUFFER_SIZE);
 			memset(g_uart1_recvbuf, 0, RX_BUFFER_SIZE);
 			memcpy(g_uart1_recvbuf, RxDMABuf1, RxBufSize1);
-			decode_ble_recvbuf(g_uart1_recvbuf, DMA_Usart_RxSize1);
+			#if USE_LTE_UART_AS_BLE
+			decode_ble_recvbuf(g_uart1_recvbuf, RxBufSize1);//解析蓝牙数据
+			#endif
+			memset(RxDMABuf1, 0, RX_BUFFER_SIZE);
 		}
 		else if(huart->Instance == USART3){
 			DMA_Usart_RxSize3 = RX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart3_rx);
@@ -90,9 +95,6 @@ void UART_IDLE_Callback(UART_HandleTypeDef *huart)
 			memset(g_uart3_recvbuf, 0, RX_BUFFER_SIZE);
 			memcpy(g_uart3_recvbuf, RxDMABuf3, DMA_Usart_RxSize3);
 			memset(RxDMABuf3, 0, RX_BUFFER_SIZE);
-			#if USE_LTE_UART_AS_BLE
-			decode_ble_recvbuf(g_uart3_recvbuf, DMA_Usart_RxSize3);
-			#endif
 		}
 		else if(huart->Instance == UART4){
 			DMA_Usart_RxSize4 = RX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(&hdma_uart4_rx);

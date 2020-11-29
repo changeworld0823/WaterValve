@@ -17,15 +17,21 @@
 #include "stm32f1xx_hal.h"
 #include "uart.h"
 #include "wh_ble.h"
+
+#define USE_RLY_OUT
+//#define USE_I_OUT
+
 /*当无法读取时钟芯片时间时，开启此宏定义，重新输入当前时间即可*/
 //#define 	SET_CURRENTTIME_INIT
 
 #define FALSE					0
 #define TRUE					1
+ 
 
+#define		VALVE_STATE_UP				1
+#define   VALVE_STATE_KEEP			0
+#define		VALVE_STATE_DOWN			-1
 
-#define		VALVE_STATE_UP				0
-#define		VALVE_STATE_DOWN			100
 #define		CONTROL_TYPE_MANUNAL	0
 #define 	CONTROL_TYPE_AUTO			1
 
@@ -33,5 +39,7 @@
 extern uint8_t ble_data[BUFSIZE_MAX];
 extern uint8_t g_control_type;
 void init_dev(void);
-void setValveOpening(float Opening);
+
+void manualSetValve(int Action);
+
 #endif

@@ -40,7 +40,10 @@ extern uint8_t g_ble_mode;
 #define 	BATTERY_PERCENT						0x01
 #define 	LTE_SIGNAL								0x02
 
+#define   BUF_GROUP_LEN							8
+
 #define 	USE_LTE_UART_AS_BLE				1
+extern uint8_t g_save_flag;
 enum n_BLE_WORK_MODE
 {
 		AT_CMD_MODE,

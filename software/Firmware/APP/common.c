@@ -22,6 +22,7 @@
 #include "buzzer.h"
 #include "stdio.h"
 
+
 uint8_t g_control_type = CONTROL_TYPE_AUTO;
 uint8_t ble_data[BLE_DATA_BUF_SIZE];
 /* 硬件设备初始化 */
@@ -43,7 +44,8 @@ void init_dev(void)
         //"IV输入设备初始化失败！";
         while(1) osDelay(1000);
     }
-    
+
+#if defined(USE_I_OUT)
     /* 初始化电流电压输出设备 */
     ivoutStatus = iv_out_dev.init();
     if(ivoutStatus != eIVOut_Ok)
@@ -51,7 +53,8 @@ void init_dev(void)
         //"IV输出设备初始化失败！";
         while(1) osDelay(1000);
     }
-    
+#endif
+
     /* 初始化继电器输出设备 */
     relay_out_dev.init();
 
@@ -80,30 +83,58 @@ static float openingDegreeToIma(float percent)
 }
 
 /* 设置开度 */
-void setValveOpening(float Opening)
+void setValveActionWithOpening(float Opening)
 {
-    #if defined(USE_I_OUT)
+#if defined(USE_I_OUT)
     iv_out_dev.i_out(openingDegreeToIma(Opening));
-    #elif defined(USE_RELAY)
-    switch(Opening){
+#endif
+}
+
+/* 设置开度 */
+void setValveActionWithERR(float ERR)
+{
+#if defined(USE_RLY_OUT)
+		int action;
+    if(ERR>0)
+    {
+        relay_out_dev.out(eRLYOut_CH1,false);
+        //relay_out_dev.out(eRLYOut_CH2,false);
+        osDelay(100);                                        //增加适当延时，预留继电器机械反应时间
+        relay_out_dev.out(eRLYOut_CH2,true);
+				action = VALVE_STATE_DOWN;
+		}
+		else if(ERR<0)
+		{
+        relay_out_dev.out(eRLYOut_CH2,false);
+        //relay_out_dev.out(eRLYOut_CH1,false);
+        osDelay(100);                                        //增加适当延时，预留继电器机械反应时间
+        relay_out_dev.out(eRLYOut_CH1,true);
+				action = VALVE_STATE_UP;
+		}
+		else
+		{
+        relay_out_dev.out(eRLYOut_CH1,false);
+        relay_out_dev.out(eRLYOut_CH2,false);
+				action = VALVE_STATE_KEEP;
+		}
+#endif
+}
+
+void manualSetValve(int Action)
+{
+    switch(Action){
       case VALVE_STATE_DOWN:
-          relay_out_dev.out(eRLYOut_CH1,false);
-          relay_out_dev.out(eRLYOut_CH2,false);
-          osDelay(100);                                        //增加适当延时，预留继电器机械反应时间
-          relay_out_dev.out(eRLYOut_CH2,true);
+          setValveActionWithOpening(0);
+          setValveActionWithERR(-1);
           break;
       case VALVE_STATE_UP:
-          relay_out_dev.out(eRLYOut_CH2,false);
-          relay_out_dev.out(eRLYOut_CH1,false);
-          osDelay(100);                                        //增加适当延时，预留继电器机械反应时间
-          relay_out_dev.out(eRLYOut_CH1,true);
+          setValveActionWithOpening(100);
+          setValveActionWithERR(1);
           break;
       case VALVE_STATE_KEEP:
-          relay_out_dev.out(eRLYOut_CH1,false);
-          relay_out_dev.out(eRLYOut_CH2,false);
+          setValveActionWithERR(0);
           break;
       default:
           break;
     }
-    #endif
 }

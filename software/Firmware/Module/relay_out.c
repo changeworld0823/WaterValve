@@ -16,6 +16,7 @@
 #include "stdbool.h"
 #include "relay_out.h"
 
+extern osSemaphoreId_t relayOutBinarySemHandle;
 /* 初始化 */
 static eRelayOutStatus_t relay_out_init(void)
 {
@@ -28,6 +29,10 @@ static eRelayOutStatus_t relay_out_init(void)
 static eRelayOutStatus_t relay_out(eRlyOutChannel_t CH, bool SW)
 {
     uint8_t Sel = 0;
+    eRelayOutStatus_t ret = eRelayOut_Ok;
+  
+    if(osSemaphoreAcquire(relayOutBinarySemHandle, portMAX_DELAY)!=osOK) { while(1) osDelay(100); }
+
     switch(CH)
     {
       case eRLYOut_CH1: Sel = 0x01; break;
@@ -38,9 +43,15 @@ static eRelayOutStatus_t relay_out(eRlyOutChannel_t CH, bool SW)
       case eRLYOut_CH6: Sel = 0x20; break;
       case eRLYOut_CH7: Sel = 0x40; break;
       case eRLYOut_CH8: Sel = 0x80; break;
-      default: return eRelayOut_InvalidVal;
+      default: ret = eRelayOut_InvalidVal; break;
     }
-    tpic6b595Action(Sel,SW);
+    if(ret==eRelayOut_Ok) 
+    {
+        tpic6b595Action(Sel,SW);
+    }
+
+    if(osSemaphoreRelease(relayOutBinarySemHandle)!=osOK) { while(1) osDelay(100); }
+
     return eRelayOut_Ok;
 }
 

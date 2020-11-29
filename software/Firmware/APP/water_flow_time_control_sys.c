@@ -21,13 +21,15 @@
 #include "sound.h"
 #include "buzzer.h"
 #include "stdio.h"
+#include "stdlib.h"
+#include "math.h"
 
 #include "common.h"
 #include "uart.h"
 #include "wh_ble.h"
 
 //#define USE_RLY_OUT
-#define USE_I_OUT
+////#define USE_I_OUT
 #define WORKTYPE_FLOWTIME				TRUE
 
 /* 业务中要用到的变量的结构体 */
@@ -35,6 +37,8 @@ struct water_flow_time_t{
   float viewOpening;
   float viewFlowMA;
   uint16_t viewFlow;
+  
+  float manualSetThr;
 };
 
 /* 变量定义 */
@@ -46,7 +50,7 @@ const osThreadAttr_t waterFlowTimeTask_attributes = {
 };
 
 struct water_flow_time_t waterFlowTimeData;
-static uint8_t set_calendar_control = 1; //用于设置日期时间
+static uint8_t set_calendar_control = 0; //用于设置日期时间
 static uint8_t reset_set_para = 0; //用于重新设置出厂参数
 static sCalendar_t cld; //日期时间
 
@@ -56,6 +60,8 @@ static uint16_t ImaToFlow(float MA);
 static float openingDegreeToIma(float percent);
 static uint8_t getFlow(uint16_t *Flow);
 static void configDev(void);
+static void setValveOpening(float Opening);
+static float openingDegreeToIma(float percent);
 
 /* 任务创建函数 */
 void water_flow_time_control_task_start(void)
@@ -129,9 +135,14 @@ static void water_flow_time_task(void *argument)
             continue;
         }
         waterFlowTimeData.viewFlow = flow;
+				if(g_save_flag)
+				{
+						mem_dev.set_para();
+						g_save_flag = 0;
+				}
  
-        memset(ble_data, 0, sizeof(ble_data));
-        ble_managesys_normaldata_encode(ble_data, VALVE_FLOW, waterFlowTimeData.viewFlow);
+        //memset(ble_data, 0, sizeof(ble_data));
+        //ble_managesys_normaldata_encode(ble_data, AFTER_VALVE_PRESS, 100);//waterFlowTimeData.viewFlow);//蓝牙数据打包，数据发送调试在这个函数里面修改
  
 //        ble_managesys_normaldata_encode(ble_data, 0x02, waterFlowTimeData.pressure);
         /* 与压力时间数组比较 
@@ -157,6 +168,7 @@ static void water_flow_time_task(void *argument)
         {
             pTable = &mem_dev.data->flowVsTime[0];
         }
+        bool exeCtl = false;
         for(int j=0;j<12;j++)
         {
             //判断值是否有效
@@ -167,12 +179,16 @@ static void water_flow_time_task(void *argument)
                 continue;
             }
             //在时间范围内
-            if((nowTime>=pTable->cell[j].startTime)&&(nowTime<=pTable->cell[j].startTime))
+            if((nowTime>=pTable->cell[j].startTime)&&(nowTime<=pTable->cell[j].endTime))
             {
                 flowSet = pTable->cell[j].val;
+                exeCtl = true;
+						   	break;
             }
         }
 
+        if(exeCtl==false) continue;
+        
         /* PI控制 */
         float err = flowSet-flow;
         float openVal;
@@ -185,7 +201,11 @@ static void water_flow_time_task(void *argument)
         if(openVal>100) openVal = 100;
         else if(openVal<0) openVal = 0;
 
-        setValveOpening(openVal);
+#if defined(USE_I_OUT)
+        setValveActionWithOpening(openVal);
+#elif defined(USE_RLY_OUT)
+        setValveActionWithERR(err);
+#endif
 
         waterFlowTimeData.viewOpening = openVal;
 
@@ -202,8 +222,11 @@ static void configDev(void)
     iv_in_dev.iv_set_mode(eIVInCH1, eIVIn_Mode_I);
 		iv_in_dev.iv_set_mode(eIVInCH3, eIVIn_Mode_I);
 		iv_in_dev.iv_set_mode(eIVInCH8, eIVIn_Mode_I);
+
+#if defined(USE_I_OUT)
     /* 配置模拟输出通道为4-20ma电流输出类型，用于阀门控制 */
     iv_out_dev.set_out_type(eIVOutType_Current_4TO20);
+#endif
     
     /* 配置继电器输出通道3为关闭，用于电磁阀控制*/
     relay_out_dev.out(eRLYOut_CH3,false);
@@ -236,41 +259,3 @@ static uint8_t getFlow(uint16_t *Flow)
    
     return 1;
 }
-
-/* 开度到电流的转换 */
-static float openingDegreeToIma(float percent)
-{
-    //return (float)(percent/100.0*20);   /* 如果输入范围是0-20ma的控制阀 */
-    return (float)(percent/100.0*(16)+4); /* 如果输入范围是4-20ma的控制阀 */
-}
-
-#if 0
-/* 设置开度 */
-static void setValveOpening(float Opening)
-{
-    #if defined(USE_I_OUT)
-    iv_out_dev.i_out(openingDegreeToIma(Opening));
-    #elif defined(USE_RELAY)
-    switch(Opening){
-      case VALVE_STATE_DOWN:
-          relay_out_dev.out(eRLYOut_CH1,false);
-          relay_out_dev.out(eRLYOut_CH2,false);
-          osDelay(100);                                        //增加适当延时，预留继电器机械反应时间
-          relay_out_dev.out(eRLYOut_CH2,true);
-          break;
-      case VALVE_STATE_UP:
-          relay_out_dev.out(eRLYOut_CH2,false);
-          relay_out_dev.out(eRLYOut_CH1,false);
-          osDelay(100);                                        //增加适当延时，预留继电器机械反应时间
-          relay_out_dev.out(eRLYOut_CH1,true);
-          break;
-      case VALVE_STATE_KEEP:
-          relay_out_dev.out(eRLYOut_CH1,false);
-          relay_out_dev.out(eRLYOut_CH2,false);
-          break;
-      default:
-          break;
-    }
-    #endif
-}
-#endif

@@ -21,6 +21,7 @@
 #include "sound.h"
 #include "buzzer.h"
 #include "stdio.h"
+#include "common.h"
 
 #define FIREWARE_TYPE			PRE_ALARM_SYS
 #define WORKTYPE_ALARMSYS		TRUE
@@ -74,9 +75,11 @@ static void pre_alarm_task(void *argument)
     
     /* 将thalposis_cb注册到光耦输入通道2的下降沿信号事件，用于检测到温感烟感传感器信号后的回调 */
     opto_in_dev.register_edge_evt_cb(eOptoIn_CH2, eOptoIn_FaillingEdge, thalposis_cb);
-    
+
+#if defined(USE_I_OUT)
     /* 配置模拟输出通道为4-20ma电流输出类型，用于阀门控制 */
     iv_out_dev.set_out_type(eIVOutType_Current_4TO20);
+#endif
 
     //日期时间
     sCalendar_t cld;
@@ -107,48 +110,6 @@ static void pre_alarm_task(void *argument)
 
         osDelay(5000);
     }
-}
-
-static void init_dev(void)
-{
-    eIVInStatus_t ivinStatus;
-    eIVOutStatus_t ivoutStatus;
-    /* 初始化蜂鸣器 */
-    soundInit();
-    
-    /* 初始化存储器 */
-    mem_dev.init();
-
-    /* 初始化电流电压输入设备 */
-    ivinStatus = iv_in_dev.init();
-    if(ivinStatus == eIVIn_Ok)
-    {
-        printf("IV输入设备初始化成功！\r\n");
-    }
-    else
-    {
-        printf("IV输入设备初始化失败！%d\r\n",ivinStatus);
-    }
-    
-    /* 初始化电流电压输出设备 */
-    ivoutStatus = iv_out_dev.init();
-    if(ivoutStatus == eIVOut_Ok)
-    {
-        printf("IV输出设备初始化成功！\r\n");
-    }
-    else
-    {
-        printf("IV输出设备初始化失败！%d\r\n",ivoutStatus);
-    }
-    
-    /* 初始化继电器输出设备 */
-    relay_out_dev.init();
-
-    /* 初始化光耦输入设备 */
-    opto_in_dev.init();
-    
-    /* 初始化日历 */
-    calendar_dev.init();
 }
 
 /* 检测到的电流值到流量值的映射 */

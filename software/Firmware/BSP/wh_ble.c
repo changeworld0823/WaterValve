@@ -1,5 +1,6 @@
 #include "wh_ble.h"
 #include "uart.h"
+#include "common.h"
 
 uint8_t g_ble_suc_flag = 0;
 uint8_t g_ble_mode = RAW_DATA_MODE;
@@ -70,7 +71,7 @@ void ble_valvelimit_encode(uint8_t *data,uint8_t type, uint8_t state)
 		buf[temp + 1] = 0xFF;
 		memcpy(data, buf, buf[DATALEN_BIT]+5);
 		#if USE_LTE_UART_AS_BLE
-		HAL_UART_Transmit_DMA(&huart3, data, buf[DATALEN_BIT]+5);
+		HAL_UART_Transmit_DMA(&huart1, data, buf[DATALEN_BIT]+5);
 		#else
 		HAL_UART_Transmit_DMA(&huart4, data, buf[DATALEN_BIT]+5);
 		#endif
@@ -95,8 +96,8 @@ void ble_valve_mannulctl_encode(uint8_t *data, uint8_t type, uint8_t state)
 		buf[temp + 1] = 0xFF;
 		memcpy(data, buf, buf[DATALEN_BIT]+5);
 		#if USE_LTE_UART_AS_BLE
-		HAL_UART_Transmit_DMA(&huart3, data, buf[DATALEN_BIT]+5);
-		#elif
+		HAL_UART_Transmit_DMA(&huart1, data, buf[DATALEN_BIT]+5);
+		#else
 		HAL_UART_Transmit_DMA(&huart4, data, buf[DATALEN_BIT]+5);
 		#endif
 }
@@ -121,8 +122,8 @@ void ble_managesys_prepress_encode(uint8_t *data, uint8_t type,uint16_t pressval
 		buf[temp + 2] = 0xFF;
 		memcpy(data, buf, buf[DATALEN_BIT]+5);
 		#if USE_LTE_UART_AS_BLE
-		HAL_UART_Transmit_DMA(&huart3, data, buf[DATALEN_BIT]+5);
-		#elif
+		HAL_UART_Transmit_DMA(&huart1, data, buf[DATALEN_BIT]+5);
+		#else
 		HAL_UART_Transmit_DMA(&huart4, data, buf[DATALEN_BIT]+5);
 		#endif
 }
@@ -143,12 +144,12 @@ void ble_managesys_normaldata_encode(uint8_t *data, uint8_t type, uint16_t value
 		buf[PACK_TYPE_BIT]	= type;							//0x01:电池电量，0x02：4G信号
 		buf[DATALEN_BIT]		= 0x02;
 		buf[DATALEN_BIT + 1] = (value >> 8) & 0xff;
-		buf[DATALEN_BIT + 2] = (value << 8) & 0xff;
+		buf[DATALEN_BIT + 2] = value & 0xff;
 		buf[DATALEN_BIT + buf[DATALEN_BIT] + 1] = 0xFF;
 		memcpy(data, buf, buf[DATALEN_BIT]+5);
-		#if USE_LTE_UART_AS_BLE
+		#if USE_LTE_UART_AS_BLE			//这个宏默认为关，需要修改对应的串口
 		HAL_UART_Transmit_DMA(&huart1, data, buf[DATALEN_BIT]+5);
-		#elif
+		#else
 		HAL_UART_Transmit_DMA(&huart4, data, buf[DATALEN_BIT]+5);
 		#endif
 }
@@ -174,9 +175,9 @@ void ble_rawdata_decode(uint8_t *data, uint8_t datasize)			//蓝牙透传数据解码
 		if(buf == NULL)
 				return;
 		cksum = *(buf + (datasize - 1));
-		if(0xFF != *(buf + (datasize - 1))){			//对数据包进行校验和运算
+		/*if(0xFF != *(buf + (datasize - 1))){			//对数据包进行校验和运算
 				return;
-		}
+		}*/
 		switch(*buf){															//设备类型
 			case PUMP_CONTROL_VALVE:								//泵控阀
 					switch(*(buf + 4)){
@@ -298,29 +299,29 @@ void mannul_valve_ctrl(uint8_t *data)
 }
 
 //设置自动调节
-
+uint8_t g_save_flag = 0;
 //设置时间-压力对应关系
 void set_time_press(uint8_t *data)
 {
 		uint8_t *buf = data;
 		uint8_t i = 0;
-		uint8_t bufnum					= buf[3] / 6;
+		uint8_t bufnum					= buf[3] / BUF_GROUP_LEN;
 		uint8_t current_id = 0;
 		for(i = 0; i < bufnum; i++)
 		{
-				current_id = 4 + (i * 6);
-				uint8_t bufid 					= buf[current_id];
-				uint8_t wkday  					= buf[current_id + 1];
-				uint8_t begin_time 			= buf[current_id + 2];												//起始时间
-				uint8_t end_time 				= buf[current_id + 3];												//终止时间
-				uint16_t press_value 		= (buf[current_id + 4] << 8) + buf[current_id + 5];			//压力值
+				current_id = 4 + (i * BUF_GROUP_LEN);
+				uint8_t bufid 					= buf[current_id];																												//包序号
+				uint8_t wkday  					= buf[current_id + 1];																										//工作日/周末
+				uint16_t begin_time 			= (buf[current_id + 2] << 8) + buf[current_id + 3];												//起始时间
+				uint16_t end_time 				= (buf[current_id + 4] << 8) + buf[current_id + 5];												//终止时间
+				uint16_t press_value 		= (buf[current_id + 6] << 8) + buf[current_id + 7];												//压力值
 			
 						//写入mem存储内部
-				mem_dev.data->pressureVsTime[cld.wday-1].cell[bufid].startTime = begin_time;
-				mem_dev.data->pressureVsTime[cld.wday-1].cell[bufid].endTime = end_time;
-				mem_dev.data->pressureVsTime[cld.wday-1].cell[bufid].val = press_value;
-				mem_dev.set_para();
+				mem_dev.data->pressureVsTime[wkday-1].cell[bufid-1].startTime = begin_time;
+				mem_dev.data->pressureVsTime[wkday-1].cell[bufid-1].endTime = end_time;
+				mem_dev.data->pressureVsTime[wkday-1].cell[bufid-1].val = press_value;
 		}	
+		g_save_flag = 1;
 }
 
 //设置时间-流量对应关系
@@ -337,12 +338,12 @@ void set_time_flow(uint8_t *data)
 				uint8_t wkday  					= buf[current_id + 1];
 				uint8_t begin_time 			= buf[current_id + 2];												//起始时间
 				uint8_t end_time 				= buf[current_id + 3];												//终止时间
-				uint16_t press_value 		= (buf[current_id + 4] << 8) + buf[current_id + 5];			//压力值
+				uint16_t flow_value 		= (buf[current_id + 4] << 8) + buf[current_id + 5];			//压力值
 			
 						//写入mem存储内部
-				mem_dev.data->pressureVsTime[cld.wday-1].cell[bufid].startTime = begin_time;
-				mem_dev.data->pressureVsTime[cld.wday-1].cell[bufid].endTime = end_time;
-				mem_dev.data->pressureVsTime[cld.wday-1].cell[bufid].val = press_value;
+				mem_dev.data->flowVsTime[cld.wday-1].cell[bufid].startTime = begin_time;
+				mem_dev.data->flowVsTime[cld.wday-1].cell[bufid].endTime = end_time;
+				mem_dev.data->flowVsTime[cld.wday-1].cell[bufid].val = flow_value;
 				mem_dev.set_para();
 		}	
 }
@@ -360,11 +361,11 @@ void set_flow_press(uint8_t *data)
 				uint8_t flow_value 			= (buf[current_id + 1] << 8) + buf[current_id + 2];												
 				uint16_t press_value 		= (buf[current_id + 3] << 8) + buf[current_id + 4];			//压力值
 			
-						//写入mem存储内部
-				/*mem_dev.data->pressureVsTime[cld.wday-1].cell[bufid].startTime = begin_time;
-				mem_dev.data->pressureVsTime[cld.wday-1].cell[bufid].endTime = end_time;
-				mem_dev.data->pressureVsTime[cld.wday-1].cell[bufid].val = press_value;
-				mem_dev.set_para();*/
+//						//写入mem存储内部
+//				mem_dev.data->pressureVsFlow.cell[bufid].startFlow = begin_time;
+//				mem_dev.data->pressureVsFlow.cell[bufid].endFlow = end_time;
+//				mem_dev.data->pressureVsFlow.cell[bufid].pressureVal = press_value;
+//				mem_dev.set_para();
 		}	
 }
 
@@ -396,10 +397,10 @@ void open_valve_mannual(uint8_t *data)
 		uint8_t state = buf[4];
 		switch(buf[6]){
 			case 0x01:	//阀门向上运动
-					setValveOpening(VALVE_STATE_UP);
+					manualSetValve(VALVE_STATE_UP);
 					break;
 			/*case 0xFF:	//阀门停止运动
-					setValveOpening(VALVE_STATE_KEEP);
+					manualSetValve(VALVE_STATE_KEEP);
 					break;*/
 			default:break;
 		}
@@ -412,10 +413,10 @@ void close_valve_mannual(uint8_t *data)
 		uint8_t state = buf[4];
 		switch(state){
 			case 0x01:	//阀门向下运动
-					setValveOpening(VALVE_STATE_DOWN);
+					manualSetValve(VALVE_STATE_DOWN);
 					break;
 			case 0xFF:	//阀门停止
-					setValveOpening(VALVE_STATE_UP);
+					manualSetValve(VALVE_STATE_UP);
 					break;
 			default:break;
 		}

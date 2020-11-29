@@ -21,12 +21,14 @@
 #include "sound.h"
 #include "buzzer.h"
 #include "stdio.h"
+#include "stdlib.h"
+#include "math.h"
 
 #include "common.h"
 
 //#define USE_RLY_OUT
-#define USE_I_OUT
-#define FIREWARE_TYPE			PRESS_TIME_SYS
+////#define USE_I_OUT
+#define FIREWARE_TYPE			  PRESS_TIME_SYS
 #define WORKTYPE_PRESSTIME	TRUE
 
 /* 业务中要用到的变量的结构体 */
@@ -36,6 +38,12 @@ struct water_press_time_t{
   uint16_t viewPressureIn;
   float viewPressureOutMA;
   uint16_t viewPressureOut;
+	
+	uint16_t viewNowTime;
+	uint16_t viewNowIdx;
+	float 		viewNowSet;
+	
+	float manualSetThr;
 };
 
 /* 变量定义 */
@@ -58,6 +66,8 @@ static uint16_t ImaToPressureIn(float MA);
 static float openingDegreeToIma(float percent);
 static uint8_t getPressureOut(uint16_t *Pressure);
 static uint8_t getPressureIn(uint16_t *Flow);
+static void setValveOpening(float Opening);
+static float openingDegreeToIma(float percent);
 static void configDev(void);
 
 /* 任务创建函数 */
@@ -106,6 +116,9 @@ static void water_press_time_task(void *argument)
     {
         mem_dev.set_para();
     }
+		
+		waterPressTimeData.manualSetThr = 2;
+		
 
     for (;;)
     {
@@ -154,19 +167,30 @@ static void water_press_time_task(void *argument)
 						{
 								pTable = &mem_dev.data->pressureVsTime[0];
 						}
+						
+						bool exeCtl = false;
 						for(int j=0;j<12;j++)
-						{
+						{							
 								//判断值是否有效
 								if((pTable->cell[j].startTime==0xffff)||(pTable->cell[j].endTime==0xffff)||(pTable->cell[j].val==0xffff))
 								{
 										continue;
 								}
 								//在时间范围内
-								if((nowTime>=pTable->cell[j].startTime)&&(nowTime<=pTable->cell[j].startTime))
+								if((nowTime>=pTable->cell[j].startTime)&&(nowTime<=pTable->cell[j].endTime))
 								{
 										pressureSet = pTable->cell[j].val;
+									
+										waterPressTimeData.viewNowIdx = j;
+										waterPressTimeData.viewNowTime = nowTime;
+										waterPressTimeData.viewNowSet = pressureSet;
+										
+										exeCtl = true;
+										break;
 								}
 						}
+						
+						if(exeCtl==false) continue;
 
 						/* PI控制 */
 						float err = pressureSet-pressureOut;
@@ -179,7 +203,13 @@ static void water_press_time_task(void *argument)
 
 						if(openVal>100) openVal = 100;
 						else if(openVal<0) openVal = 0;
-						setValveOpening(openVal);
+						
+#if defined(USE_I_OUT)
+            setValveActionWithOpening(openVal);
+#elif defined(USE_RLY_OUT)
+            setValveActionWithERR(err);
+#endif
+
 						waterPressTimeData.viewOpening = openVal;
 						break;
 					case CONTROL_TYPE_MANUNAL:
@@ -195,11 +225,14 @@ static void water_press_time_task(void *argument)
 static void configDev(void)
 {
     /* 配置模拟输入通道1为电流输入模式，用于进口水压检测*/
-    iv_in_dev.iv_set_mode(eIVInCH1, eIVIn_Mode_I);
+    iv_in_dev.iv_set_mode(eIVInCH3, eIVIn_Mode_I);
     /* 配置模拟输入通道2为电流输入模式，用于出口水压检测 */
     iv_in_dev.iv_set_mode(eIVInCH2, eIVIn_Mode_I);
+
+    #if defined(USE_I_OUT)
     /* 配置模拟输出通道为4-20ma电流输出类型，用于阀门控制 */
     iv_out_dev.set_out_type(eIVOutType_Current_4TO20);
+    #endif
     
     /* 配置继电器输出通道3为关闭，用于电磁阀控制*/
     relay_out_dev.out(eRLYOut_CH3,false);
@@ -215,7 +248,7 @@ static uint16_t ImaToPressureIn(float MA)
        压力量程为0MPA~2.5MPA
     */
     if(MA<4) return 0;
-    return (uint16_t)((MA-4)/20*2.5*100);//阀前压力值，这里放大了100倍
+    return (uint16_t)((MA-4)/(20-4)*2*100);//阀前压力值，这里放大了100倍
 }
 
 /* 检测到的电流值到压力值的映射 */
@@ -225,7 +258,7 @@ static uint16_t ImaToPressureOut(float MA)
        压力量程为0MPA~2.5MPA
     */
     if(MA<4) return 0;
-    return (uint16_t)((MA-4)/20*2.5*100);//阀后压力值，这里放大了100倍
+    return (uint16_t)((MA-4)/(20-4)*2*100);//阀后压力值，这里放大了100倍
 }
 
 /* 获取压力值 */
@@ -249,7 +282,7 @@ static uint8_t getPressureIn(uint16_t *Flow)
 {
     float Ima = 0;
     /* 获取压力电流值 */
-    if(iv_in_dev.i_in(eIVInCH1, &Ima)!=eIVIn_Ok)
+    if(iv_in_dev.i_in(eIVInCH3, &Ima)!=eIVIn_Ok)
     {
         return 0;
     }
@@ -258,4 +291,3 @@ static uint8_t getPressureIn(uint16_t *Flow)
 
     return 1;
 }
-

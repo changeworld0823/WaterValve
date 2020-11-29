@@ -24,8 +24,6 @@
 
 #include "common.h"
 
-//#define USE_RLY_OUT
-#define USE_I_OUT
 #define FIREWARE_TYPE			PRESS_FLOW_SYS
 #define WORKTYPE_PRESSFLOW			TRUE
 
@@ -51,7 +49,6 @@ static uint16_t ImaToFlow(float MA);
 static uint16_t ImaToPressure(float MA);
 static uint8_t getPressure(uint16_t *Pressure);
 static uint8_t getFlow(uint16_t *Flow);
-static void setValveOpening(float Opening);
 static float openingDegreeToIma(float percent);
 static void configDev(void);
 
@@ -110,6 +107,7 @@ static void water_press_flow_task(void *argument)
         sPressureVsFlow_t *pTable = NULL;
         pTable = &mem_dev.data->pressureVsFlow;
 
+        bool exeCtl = false;
         for(int j=0;j<12;j++)
         {
             //判断值是否有效
@@ -121,8 +119,12 @@ static void water_press_flow_task(void *argument)
             if((pressure>=pTable->cell[j].startFlow)&&(pressure<=pTable->cell[j].endFlow))
             {
                 pressureSet = pTable->cell[j].pressureVal;
+                exeCtl = true;
+						   	break;
             }
         }
+
+        if(exeCtl==false) continue;
 
         /* PI控制 */
         float err = pressureSet-pressure;
@@ -135,8 +137,12 @@ static void water_press_flow_task(void *argument)
 
         if(openVal>100) openVal = 100;
         else if(openVal<0) openVal = 0;
-
-        setValveOpening(openVal);
+				
+#if defined(USE_I_OUT)
+        setValveActionWithOpening(openVal);
+#elif defined(USE_RLY_OUT)
+        setValveActionWithERR(err);
+#endif
 
         waterPressFlowData.viewOpening = openVal;
         
@@ -151,8 +157,11 @@ static void configDev(void)
     iv_in_dev.iv_set_mode(eIVInCH1, eIVIn_Mode_I);
     /* 配置模拟输入通道2为电流输入模式，用于流量检测*/
     iv_in_dev.iv_set_mode(eIVInCH2, eIVIn_Mode_I);
+    
+#if defined(USE_I_OUT)
     /* 配置模拟输出通道为4-20ma电流输出类型，用于阀门控制 */
     iv_out_dev.set_out_type(eIVOutType_Current_4TO20);
+#endif
 }
 
 /* 检测到的电流值到流量值的映射 */
@@ -197,38 +206,3 @@ static uint8_t getFlow(uint16_t *Flow)
     return 1;
 }
 
-/* 开度到电流的转换 */
-static float openingDegreeToIma(float percent)
-{
-    //return (float)(percent/100.0*20);   /* 如果输入范围是0-20ma的控制阀 */
-    return (float)(percent/100.0*(16)+4); /* 如果输入范围是4-20ma的控制阀 */
-}
-
-/* 设置开度 */
-static void setValveOpening(float Opening)
-{
-    #if defined(USE_I_OUT)
-    iv_out_dev.i_out(openingDegreeToIma(Opening));
-    #elif defined(USE_RELAY)
-    switch(Opening){
-      case VALVE_STATE_DOWN:
-          relay_out_dev.out(eRLYOut_CH1,false);
-          relay_out_dev.out(eRLYOut_CH2,false);
-          osDelay(100);                                        //增加适当延时，预留继电器机械反应时间
-          relay_out_dev.out(eRLYOut_CH2,true);
-          break;
-      case VALVE_STATE_UP:
-          relay_out_dev.out(eRLYOut_CH2,false);
-          relay_out_dev.out(eRLYOut_CH1,false);
-          osDelay(100);                                        //增加适当延时，预留继电器机械反应时间
-          relay_out_dev.out(eRLYOut_CH1,true);
-          break;
-      case VALVE_STATE_KEEP:
-          relay_out_dev.out(eRLYOut_CH1,false);
-          relay_out_dev.out(eRLYOut_CH2,false);
-          break;
-      default:
-          break;
-    }
-    #endif
-}
