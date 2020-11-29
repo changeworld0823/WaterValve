@@ -29,7 +29,6 @@
 extern uint8_t g_ble_suc_flag;
 extern uint8_t g_ble_mode;
 
-
 #define		VALVE_OPEN								0x01
 #define 	VALVE_CLOSE								0xFF
 		
@@ -43,7 +42,7 @@ extern uint8_t g_ble_mode;
 #define   BUF_GROUP_LEN							8
 
 #define 	USE_LTE_UART_AS_BLE				1
-extern uint8_t g_save_flag;
+
 enum n_BLE_WORK_MODE
 {
 		AT_CMD_MODE,

@@ -33,7 +33,7 @@ void mannul_valve_ctrl(uint8_t *data);
 void decode_ble_recvbuf(uint8_t *data, uint8_t datasize)
 {
 	#if USE_LTE_UART_AS_BLE
-		uint8_t *buf = g_uart1_recvbuf;
+		uint8_t *buf = data;
 	#else
 		uint8_t *buf = g_uart4_recvbuf;
 	#endif
@@ -299,7 +299,7 @@ void mannul_valve_ctrl(uint8_t *data)
 }
 
 //设置自动调节
-uint8_t g_save_flag = 0;
+
 //设置时间-压力对应关系
 void set_time_press(uint8_t *data)
 {
@@ -310,18 +310,17 @@ void set_time_press(uint8_t *data)
 		for(i = 0; i < bufnum; i++)
 		{
 				current_id = 4 + (i * BUF_GROUP_LEN);
-				uint8_t bufid 					= buf[current_id];																												//包序号
-				uint8_t wkday  					= buf[current_id + 1];																										//工作日/周末
-				uint16_t begin_time 			= (buf[current_id + 2] << 8) + buf[current_id + 3];												//起始时间
-				uint16_t end_time 				= (buf[current_id + 4] << 8) + buf[current_id + 5];												//终止时间
+				uint8_t bufid 					= buf[current_id] - 1;																										//包序号，buf从0开始所以需要-1
+				uint8_t wkday  					= buf[current_id + 1] - 1;																								//工作日/周末,buf从0开始所以需要-1
+				uint16_t begin_time 			= (buf[current_id + 2] << 8) + buf[current_id + 3];											//起始时间
+				uint16_t end_time 				= (buf[current_id + 4] << 8) + buf[current_id + 5];											//终止时间
 				uint16_t press_value 		= (buf[current_id + 6] << 8) + buf[current_id + 7];												//压力值
 			
 						//写入mem存储内部
-				mem_dev.data->pressureVsTime[wkday-1].cell[bufid-1].startTime = begin_time;
-				mem_dev.data->pressureVsTime[wkday-1].cell[bufid-1].endTime = end_time;
-				mem_dev.data->pressureVsTime[wkday-1].cell[bufid-1].val = press_value;
+				mem_dev.data->pressureVsTime.cell[wkday][bufid].startTime = begin_time;
+				mem_dev.data->pressureVsTime.cell[wkday][bufid].endTime = end_time;
+				mem_dev.data->pressureVsTime.cell[wkday][bufid].val = press_value;
 		}	
-		g_save_flag = 1;
 }
 
 //设置时间-流量对应关系
@@ -329,22 +328,21 @@ void set_time_flow(uint8_t *data)
 {
 		uint8_t *buf = data;
 		uint8_t i = 0;
-		uint8_t bufnum					= buf[3] / 6;
+		uint8_t bufnum					= buf[3] / BUF_GROUP_LEN;
 		uint8_t current_id = 0;
 		for(i = 0; i < bufnum; i++)
 		{
-				current_id = 4 + (i * 6);
-				uint8_t bufid 					= buf[current_id];
-				uint8_t wkday  					= buf[current_id + 1];
-				uint8_t begin_time 			= buf[current_id + 2];												//起始时间
-				uint8_t end_time 				= buf[current_id + 3];												//终止时间
-				uint16_t flow_value 		= (buf[current_id + 4] << 8) + buf[current_id + 5];			//压力值
+				current_id = 4 + (i * BUF_GROUP_LEN);
+				uint8_t bufid 					= buf[current_id] - 1;																										//包序号，buf从0开始所以需要-1
+				uint8_t wkday  					= buf[current_id + 1] - 1;																								//工作日/周末,buf从0开始所以需要-1
+				uint16_t begin_time 			= (buf[current_id + 2] << 8) + buf[current_id + 3];											//起始时间
+				uint16_t end_time 				= (buf[current_id + 4] << 8) + buf[current_id + 5];											//终止时间
+				uint16_t flow_value 		= (buf[current_id + 6] << 8) + buf[current_id + 7];												//流量值
 			
-						//写入mem存储内部
-				mem_dev.data->flowVsTime[cld.wday-1].cell[bufid].startTime = begin_time;
-				mem_dev.data->flowVsTime[cld.wday-1].cell[bufid].endTime = end_time;
-				mem_dev.data->flowVsTime[cld.wday-1].cell[bufid].val = flow_value;
-				mem_dev.set_para();
+				//写入mem存储内部
+				mem_dev.data->pressureVsTime.cell[wkday][bufid].startTime = begin_time;
+				mem_dev.data->pressureVsTime.cell[wkday][bufid].endTime = end_time;
+				mem_dev.data->pressureVsTime.cell[wkday][bufid].val = flow_value;
 		}	
 }
 //设置流量-压力对应关系

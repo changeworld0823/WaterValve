@@ -81,6 +81,7 @@ struct sPID PID = {.P=0.08, .I=0.02, .D = 0,};
 /* 业务处理任务 */
 static void water_flow_time_task(void *argument)
 {
+		static uint8_t count = 0;
 		uint16_t flow = 0;
     /* 初始化设备 */
     init_dev();
@@ -134,18 +135,26 @@ static void water_flow_time_task(void *argument)
             osDelay(1000);
             continue;
         }
+				
+				if(g_ble_suc_flag)	//蓝牙解码成功
+				{
+						mem_dev.set_para();			//保存蓝牙接收的数据至mem
+						g_ble_suc_flag = 0;	
+				}
         waterFlowTimeData.viewFlow = flow;
- 
-        memset(ble_data, 0, sizeof(ble_data));
-        ble_managesys_normaldata_encode(ble_data, VALVE_FLOW, waterFlowTimeData.viewFlow);
- 
-//        ble_managesys_normaldata_encode(ble_data, 0x02, waterFlowTimeData.pressure);
+				if(count >= 40)		//3s进入任务一次，2min中发送一次则需要120/3=40次
+				{
+						memset(ble_data, 0, sizeof(ble_data));
+						ble_managesys_normaldata_encode(ble_data, VALVE_FLOW, waterFlowTimeData.viewFlow);
+						count = 0;
+				}
+				else
+				{ 
+					count ++;
+				}
         /* 与压力时间数组比较 
            注意：wday是从1开始的，1代表周日，2代表周一。。。 
         */
-        //if(g_realy == 0)//进入自动调节
-        //else(g_relay_flag == 1)//跳出自动调节
-        //if(g_mannual_ctl_flag == 0)    //判断标志位是否为手动设置调节，标志位改变由蓝牙数据决定
         
         /* 星期值为1-7，不会为0 */
         if(cld.wday==0) {osDelay(100);continue;}

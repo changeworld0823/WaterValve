@@ -88,7 +88,8 @@ struct sPID PID = {.P=0.08, .I=0.02, .D = 0,};
 /* 业务处理任务 */
 static void water_press_time_task(void *argument)
 {
-//    uint8_t ble_data[BLE_CMD_BUF_SIZE];
+		static uint8_t count = 0;
+    uint8_t ble_data[BLE_CMD_BUF_SIZE];
     /* 初始化设备 */
     init_dev();
 
@@ -130,6 +131,11 @@ static void water_press_time_task(void *argument)
 								osDelay(1000);
 								continue;
 						}
+						if(g_ble_suc_flag)	//蓝牙解码成功
+						{
+								mem_dev.set_para();			//保存蓝牙接收的数据至mem
+								g_ble_suc_flag = 0;	
+						}
 						/* 获取进口压力值 */
 						uint16_t pressureIn = 0;
 						if(getPressureIn(&pressureIn)==0)
@@ -138,8 +144,16 @@ static void water_press_time_task(void *argument)
 								continue;
 						}
 						waterPressTimeData.viewPressureIn = pressureIn;
-		//        memset(ble_data, 0, sizeof(ble_data));
-		//        ble_managesys_normaldata_encode(ble_data, 0x03, waterPressTimeData.flow);
+						if(count >= 40)		//3s进入任务一次，2min中发送一次则需要120/3=40次
+						{
+								memset(ble_data, 0, sizeof(ble_data));
+								ble_managesys_normaldata_encode(ble_data, BEFORE_VALVE_PRESS, waterPressTimeData.viewPressureIn);
+								count = 0;
+						}
+						else
+						{ 
+							count ++;
+						}
 						/* 获取出口压力值 */
 						uint16_t pressureOut = 0;
 						if(getPressureOut(&pressureOut)==0)
