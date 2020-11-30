@@ -18,8 +18,8 @@
 #include "buzzer.h"
 #include "stdio.h"
 
-#define BLE_CMD_BUF_SIZE						64
-#define BLE_DATA_BUF_SIZE						64
+#define BLE_CMD_BUF_SIZE						255
+#define BLE_DATA_BUF_SIZE						255
 #define PUMP_VALVE_TYPE							0x01
 #define PRESS_MANAGE_TYPE						0x02
 
@@ -63,10 +63,11 @@ enum n_BLE_DEVICE_TYPE{
 };
 
 enum n_BLE_ENCODE_BIT{			
-		DEVICE_TYPE_BIT = 0,		
-		READ_WRITE_BIT,		
-		PACK_TYPE_BIT,			
-		DATALEN_BIT,				
+		DEVICE_TYPE_BIT = 0,		//设备类型
+		READ_WRITE_BIT,				//读写类型
+		PACK_TYPE_BIT,				//包类型
+		DATALEN_BIT,				//数据长度
+		COMMAND_VALUE_BIT,			//单个数据长度时命令
 };
 
 enum n_BLE_COMMAND_TYPE{

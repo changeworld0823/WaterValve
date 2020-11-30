@@ -233,7 +233,7 @@ void ble_rawdata_decode(uint8_t *data, uint8_t datasize)			//蓝牙透传数据解码
 							case HALF_AUTORUN_BUTTON:					//半自动运行按钮
 									break;
 							case DATA_SYNC_BUTTON:					//数据同步按钮
-								
+								data_sync_button(buf);
 									break;
 							default:
 									break;
@@ -343,9 +343,9 @@ void set_time_flow(uint8_t *data)
 				uint16_t flow_value 		= (buf[current_id + 6] << 8) + buf[current_id + 7];												//流量值
 			
 				//写入mem存储内部
-				mem_dev.data->pressureVsTime.cell[wkday][bufid].startTime = begin_time;
-				mem_dev.data->pressureVsTime.cell[wkday][bufid].endTime = end_time;
-				mem_dev.data->pressureVsTime.cell[wkday][bufid].val = flow_value;
+				mem_dev.data->flowVsTime.cell[wkday][bufid].startTime = begin_time;
+				mem_dev.data->flowVsTime.cell[wkday][bufid].endTime = end_time;
+				mem_dev.data->flowVsTime.cell[wkday][bufid].val = flow_value;
 		}	
 }
 //设置流量-压力对应关系
@@ -395,7 +395,7 @@ void open_valve_mannual(uint8_t *data)
 {
 		uint8_t *buf = data;
 	
-		uint8_t state = buf[4];
+		uint8_t state = buf[COMMAND_VALUE_BIT];
 		switch(buf[6]){
 			case 0x01:	//阀门向上运动
 					manualSetValve(VALVE_STATE_UP);
@@ -411,7 +411,7 @@ void close_valve_mannual(uint8_t *data)
 {
 		uint8_t *buf = data;
 	
-		uint8_t state = buf[4];
+		uint8_t state = buf[COMMAND_VALUE_BIT];
 		switch(state){
 			case 0x01:	//阀门向下运动
 					manualSetValve(VALVE_STATE_DOWN);
@@ -427,7 +427,7 @@ void close_valve_mannual(uint8_t *data)
 void elecmagnetic_ctrl(uint8_t *data)
 {
 		uint8_t *buf = data;
-		uint8_t state = buf[4];
+		uint8_t state = buf[COMMAND_VALUE_BIT];
 		switch(state){
 			case 0x01:
 				relay_out_dev.out(eRLYOut_CH3,true);
@@ -442,13 +442,122 @@ void elecmagnetic_ctrl(uint8_t *data)
 void valve_adjust_range(uint8_t *data)
 {
 		uint8_t *buf = data;
-		mem_dev.data->pressureVsTime.tolerance = buf[4];
-		mem_dev.data->flowVsTime.tolerance = buf[4];
+		mem_dev.data->pressureVsTime.tolerance = buf[COMMAND_VALUE_BIT];
+		mem_dev.data->flowVsTime.tolerance = buf[COMMAND_VALUE_BIT];
 }
 
 //自动按钮
 
 //半自动按钮
+
+//数据同步函数
+void data_sync_proc(uint8_t *syncdata, uint8_t type)
+{
+	uint8_t buf[BLE_DATA_BUF_SIZE];
+	uint8_t bufid = 0, datalen = 0;
+	uint8_t wday = 0;
+	uint8_t current_id = 0;
+	memset(buf, 0, sizeof(buf));
+	buf[DEVICE_TYPE_BIT] 	= PRESS_MANAGE_TYPE;
+	buf[READ_WRITE_BIT]	 	= READ_TYPE;
+	buf[PACK_TYPE_BIT]		= type;							
+	struct FlowVsTimeItem *pTable = NULL;
+	switcc(type)
+	{
+		case TIME_PRESS_SETTING:
+			for(int i = 0; i < 2; i++)
+			{	
+				bufid = 0;
+				pTable = &mem_dev.data->pressureVsTime.cell[i][0];
+				for(j = 0; j < sizeof(mem_dev.data->pressureVsTime.cell[0])/sizeof(mem_dev.data->pressureVsTime.cell[0][0]); j++)
+				{
+					if((pTable[j].startTime==QY_DEFAULT_NOMEANING)||(pTable[j].endTime==QY_DEFAULT_NOMEANING)||(pTable[j].val==QY_DEFAULT_NOMEANING))
+					{
+						continue;
+					}
+					current_id = 4 + (j * BUF_GROUP_LEN) + datalen;
+					buf[current_id] = bufid;
+					buf[current_id + 1] = i;
+					buf[current_id + 2] = (mem_dev.data->pressureVsTime.cell[i].startTime >> 8) & 0xFF;
+					buf[current_id + 3] = mem_dev.data->pressureVsTime.cell[i].startTime & 0xFF;
+					buf[current_id + 4] = (mem_dev.data->pressureVsTime.cell[i].endTime >> 8) & 0xFF;
+					buf[current_id + 5] = mem_dev.data->pressureVsTime.cell[i].endTime & 0xFF;
+					buf[current_id + 6] = (mem_dev.data->pressureVsTime.cell[i].val >> 8) & 0xFF;
+					buf[current_id + 7] = mem_dev.data->pressureVsTime.cell[i].val & 0xFF;
+					bufid++;
+				}
+				datalen += bufid * BUF_GROUP_LEN;
+			}
+			buf[DATALEN_BIT]		= datalen;
+			buf[DATALEN_BIT + datalen + 1] = 0xFF;
+			memcpy(syncdata, buf, buf[DATALEN_BIT]+5);
+			#if USE_LTE_UART_AS_BLE
+			HAL_UART_Transmit_DMA(&huart1, syncdata, buf[DATALEN_BIT]+5);
+			#else
+			HAL_UART_Transmit_DMA(&huart4, syncdata, buf[DATALEN_BIT]+5);
+			#endif
+			break;
+		case FLOW_PRESS_SETTING:
+			break;
+		case TIME_FLOW_SETTING:
+			for(int i = 0; i < 2; i++)
+			{	
+				bufid = 0;
+				pTable = &mem_dev.data->flowVsTime.cell[i][0];
+				for(j = 0; j < sizeof(mem_dev.data->flowVsTime.cell[0])/sizeof(mem_dev.data->flowVsTime.cell[0][0]); j++)
+				{
+					if((pTable[j].startTime==QY_DEFAULT_NOMEANING)||(pTable[j].endTime==QY_DEFAULT_NOMEANING)||(pTable[j].val==QY_DEFAULT_NOMEANING))
+					{
+						continue;
+					}
+					current_id = 4 + (j * BUF_GROUP_LEN) + datalen;
+					buf[current_id] = bufid;
+					buf[current_id + 1] = i;
+					buf[current_id + 2] = (mem_dev.data->flowVsTime.cell[i].startTime >> 8) & 0xFF;
+					buf[current_id + 3] = mem_dev.data->flowVsTime.cell[i].startTime & 0xFF;
+					buf[current_id + 4] = (mem_dev.data->flowVsTime.cell[i].endTime >> 8) & 0xFF;
+					buf[current_id + 5] = mem_dev.data->flowVsTime.cell[i].endTime & 0xFF;
+					buf[current_id + 6] = (mem_dev.data->flowVsTime.cell[i].val >> 8) & 0xFF;
+					buf[current_id + 7] = mem_dev.data->flowVsTime.cell[i].val & 0xFF;
+					bufid++;
+				}
+				datalen += bufid * BUF_GROUP_LEN;
+			}
+			buf[DATALEN_BIT]		= datalen;
+			buf[DATALEN_BIT + datalen + 1] = 0xFF;
+			memcpy(syncdata, buf, buf[DATALEN_BIT]+5);
+			#if USE_LTE_UART_AS_BLE
+			HAL_UART_Transmit_DMA(&huart1, syncdata, buf[DATALEN_BIT]+5);
+			#else
+			HAL_UART_Transmit_DMA(&huart4, syncdata, buf[DATALEN_BIT]+5);
+			#endif
+			break;
+		default:break;
+	}
+}
+//数据同步按钮
+void data_sync_button(uint8_t *data)
+{
+		uint8_t *buf = data;
+		uint8_t syncdata[BLE_DATA_BUF_SIZE];
+		switch(buf[COMMAND_VALUE_BIT])
+		{
+			case TIME_PRESS_SETTING:	////同步时间压力
+				memset(syncdata, 0, sizeof(syncdata));
+				data_sync_proc(syncdata, TIME_PRESS_SETTING);
+				break;
+			case FLOW_PRESS_SETTING:	//同步压力流量
+				memset(syncdata, 0, sizeof(syncdata));
+				data_sync_proc(syncdata, FLOW_PRESS_SETTING);
+				break;
+			case TIME_FLOW_SETTING:		//同步时间流量
+				memset(syncdata, 0, sizeof(syncdata));
+				data_sync_proc(syncdata, TIME_FLOW_SETTING);
+				break;
+			default:
+				break;
+		}
+}
 
 #if 0
 unsigned short checksum(uint8_t *buffer, int size)
