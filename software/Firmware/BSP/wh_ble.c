@@ -28,7 +28,7 @@ void open_valve_delay(uint8_t *data);
 void close_valve_delay(uint8_t *data);
 void close_valve_timeout(uint8_t *data);
 void mannul_valve_ctrl(uint8_t *data);
-
+void data_sync_button(uint8_t *data);
 //extern UART_HandleTypeDef huart3;
 void decode_ble_recvbuf(uint8_t *data, uint8_t datasize)
 {
@@ -461,15 +461,16 @@ void data_sync_proc(uint8_t *syncdata, uint8_t type)
 	buf[DEVICE_TYPE_BIT] 	= PRESS_MANAGE_TYPE;
 	buf[READ_WRITE_BIT]	 	= READ_TYPE;
 	buf[PACK_TYPE_BIT]		= type;							
-	struct FlowVsTimeItem *pTable = NULL;
-	switcc(type)
+	struct PressureVsTimeItem *pTable = NULL;
+	struct FlowVsTimeItem *fTable = NULL;
+	switch(type)
 	{
 		case TIME_PRESS_SETTING:
 			for(int i = 0; i < 2; i++)
 			{	
 				bufid = 0;
 				pTable = &mem_dev.data->pressureVsTime.cell[i][0];
-				for(j = 0; j < sizeof(mem_dev.data->pressureVsTime.cell[0])/sizeof(mem_dev.data->pressureVsTime.cell[0][0]); j++)
+				for(int j = 0; j < sizeof(mem_dev.data->pressureVsTime.cell[0])/sizeof(mem_dev.data->pressureVsTime.cell[0][0]); j++)
 				{
 					if((pTable[j].startTime==QY_DEFAULT_NOMEANING)||(pTable[j].endTime==QY_DEFAULT_NOMEANING)||(pTable[j].val==QY_DEFAULT_NOMEANING))
 					{
@@ -478,12 +479,12 @@ void data_sync_proc(uint8_t *syncdata, uint8_t type)
 					current_id = 4 + (j * BUF_GROUP_LEN) + datalen;
 					buf[current_id] = bufid;
 					buf[current_id + 1] = i;
-					buf[current_id + 2] = (mem_dev.data->pressureVsTime.cell[i].startTime >> 8) & 0xFF;
-					buf[current_id + 3] = mem_dev.data->pressureVsTime.cell[i].startTime & 0xFF;
-					buf[current_id + 4] = (mem_dev.data->pressureVsTime.cell[i].endTime >> 8) & 0xFF;
-					buf[current_id + 5] = mem_dev.data->pressureVsTime.cell[i].endTime & 0xFF;
-					buf[current_id + 6] = (mem_dev.data->pressureVsTime.cell[i].val >> 8) & 0xFF;
-					buf[current_id + 7] = mem_dev.data->pressureVsTime.cell[i].val & 0xFF;
+					buf[current_id + 2] = (mem_dev.data->pressureVsTime.cell[i][bufid].startTime >> 8) & 0xFF;
+					buf[current_id + 3] = mem_dev.data->pressureVsTime.cell[i][bufid].startTime & 0xFF;
+					buf[current_id + 4] = (mem_dev.data->pressureVsTime.cell[i][bufid].endTime >> 8) & 0xFF;
+					buf[current_id + 5] = mem_dev.data->pressureVsTime.cell[i][bufid].endTime & 0xFF;
+					buf[current_id + 6] = (mem_dev.data->pressureVsTime.cell[i][bufid].val >> 8) & 0xFF;
+					buf[current_id + 7] = mem_dev.data->pressureVsTime.cell[i][bufid].val & 0xFF;
 					bufid++;
 				}
 				datalen += bufid * BUF_GROUP_LEN;
@@ -503,22 +504,22 @@ void data_sync_proc(uint8_t *syncdata, uint8_t type)
 			for(int i = 0; i < 2; i++)
 			{	
 				bufid = 0;
-				pTable = &mem_dev.data->flowVsTime.cell[i][0];
-				for(j = 0; j < sizeof(mem_dev.data->flowVsTime.cell[0])/sizeof(mem_dev.data->flowVsTime.cell[0][0]); j++)
+				fTable = &mem_dev.data->flowVsTime.cell[i][0];
+				for(int j = 0; j < sizeof(mem_dev.data->flowVsTime.cell[0])/sizeof(mem_dev.data->flowVsTime.cell[0][0]); j++)
 				{
-					if((pTable[j].startTime==QY_DEFAULT_NOMEANING)||(pTable[j].endTime==QY_DEFAULT_NOMEANING)||(pTable[j].val==QY_DEFAULT_NOMEANING))
+					if((fTable[j].startTime==QY_DEFAULT_NOMEANING)||(fTable[j].endTime==QY_DEFAULT_NOMEANING)||(fTable[j].val==QY_DEFAULT_NOMEANING))
 					{
 						continue;
 					}
 					current_id = 4 + (j * BUF_GROUP_LEN) + datalen;
 					buf[current_id] = bufid;
 					buf[current_id + 1] = i;
-					buf[current_id + 2] = (mem_dev.data->flowVsTime.cell[i].startTime >> 8) & 0xFF;
-					buf[current_id + 3] = mem_dev.data->flowVsTime.cell[i].startTime & 0xFF;
-					buf[current_id + 4] = (mem_dev.data->flowVsTime.cell[i].endTime >> 8) & 0xFF;
-					buf[current_id + 5] = mem_dev.data->flowVsTime.cell[i].endTime & 0xFF;
-					buf[current_id + 6] = (mem_dev.data->flowVsTime.cell[i].val >> 8) & 0xFF;
-					buf[current_id + 7] = mem_dev.data->flowVsTime.cell[i].val & 0xFF;
+					buf[current_id + 2] = (mem_dev.data->flowVsTime.cell[i][bufid].startTime >> 8) & 0xFF;
+					buf[current_id + 3] = mem_dev.data->flowVsTime.cell[i][bufid].startTime & 0xFF;
+					buf[current_id + 4] = (mem_dev.data->flowVsTime.cell[i][bufid].endTime >> 8) & 0xFF;
+					buf[current_id + 5] = mem_dev.data->flowVsTime.cell[i][bufid].endTime & 0xFF;
+					buf[current_id + 6] = (mem_dev.data->flowVsTime.cell[i][bufid].val >> 8) & 0xFF;
+					buf[current_id + 7] = mem_dev.data->flowVsTime.cell[i][bufid].val & 0xFF;
 					bufid++;
 				}
 				datalen += bufid * BUF_GROUP_LEN;

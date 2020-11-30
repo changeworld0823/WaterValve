@@ -35,7 +35,7 @@
 #define		CONTROL_TYPE_MANUNAL	0
 #define 	CONTROL_TYPE_AUTO			1
 
-#define 	BUFSIZE_MAX						64
+#define 	BUFSIZE_MAX						255
 extern uint8_t ble_data[BUFSIZE_MAX];
 extern uint8_t g_control_type;
 void init_dev(void);
