@@ -141,16 +141,29 @@ void ble_managesys_normaldata_encode(uint8_t *data, uint8_t type, uint16_t value
 		memset(buf, 0, sizeof(buf));
 		buf[DEVICE_TYPE_BIT] = PRESS_MANAGE_TYPE;
 		buf[READ_WRITE_BIT] = READ_TYPE;
-		buf[PACK_TYPE_BIT]	= type;							//0x01:电池电量，0x02：4G信号
-		buf[DATALEN_BIT]		= 0x02;
-		buf[DATALEN_BIT + 1] = (value >> 8) & 0xff;
-		buf[DATALEN_BIT + 2] = value & 0xff;
+		buf[PACK_TYPE_BIT]	= type;	
+		if(type == VALVE_FLOW)
+		{
+				buf[DATALEN_BIT]		= 0x04;
+				buf[DATALEN_BIT + 1] = (value >> 24) & 0xFF;
+				buf[DATALEN_BIT + 2] = (value >> 16) & 0xff;
+				buf[DATALEN_BIT + 3] = (value >> 8) & 0xff;
+				buf[DATALEN_BIT + 4] = value & 0xff;
+		}
+		else
+		{
+				buf[DATALEN_BIT]		= 0x02;
+				buf[DATALEN_BIT + 1] = (value >> 8) & 0xFF;
+				buf[DATALEN_BIT + 2] = value & 0xff;
+		}
 		buf[DATALEN_BIT + buf[DATALEN_BIT] + 1] = 0xFF;
-		memcpy(data, buf, buf[DATALEN_BIT]+5);
+		buf[DATALEN_BIT + buf[DATALEN_BIT] + 2] = 0xFF;
+		buf[DATALEN_BIT + buf[DATALEN_BIT] + 3] = 0xFF;
+		memcpy(data, buf, buf[DATALEN_BIT]+7);
 		#if USE_LTE_UART_AS_BLE			//这个宏默认为关，需要修改对应的串口
-		HAL_UART_Transmit_DMA(&huart1, data, buf[DATALEN_BIT]+5);
+		HAL_UART_Transmit_DMA(&huart1, data, buf[DATALEN_BIT]+7);
 		#else
-		HAL_UART_Transmit_DMA(&huart4, data, buf[DATALEN_BIT]+5);
+		HAL_UART_Transmit_DMA(&huart4, data, buf[DATALEN_BIT]+7);
 		#endif
 }
 
