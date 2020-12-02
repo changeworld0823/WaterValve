@@ -81,7 +81,6 @@ struct sPID PID = {.P=0.08, .I=0.02, .D = 0,};
 /* 业务处理任务 */
 static void water_flow_time_task(void *argument)
 {
-		static uint8_t count = 0;
 		uint16_t flow = 0;
     /* 初始化设备 */
     init_dev();
@@ -142,15 +141,11 @@ static void water_flow_time_task(void *argument)
 						g_ble_suc_flag = 0;	
 				}
         waterFlowTimeData.viewFlow = flow;
-				if(count >= 40)		//3s进入任务一次，2min中发送一次则需要120/3=40次
+				if(g_sync_suc)		//3s进入任务一次，2min中发送一次则需要120/3=40次
 				{
 						memset(ble_data, 0, sizeof(ble_data));
 						ble_managesys_normaldata_encode(ble_data, VALVE_FLOW, waterFlowTimeData.viewFlow);
-						count = 0;
-				}
-				else
-				{ 
-					count ++;
+						g_sync_suc = 0;
 				}
         /* 与压力时间数组比较 
            注意：wday是从1开始的，1代表周日，2代表周一。。。 

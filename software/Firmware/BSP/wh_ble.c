@@ -451,6 +451,7 @@ void valve_adjust_range(uint8_t *data)
 //半自动按钮
 
 //数据同步函数
+uint8_t g_sync_suc = 0;
 void data_sync_proc(uint8_t *syncdata, uint8_t type)
 {
 	uint8_t buf[BLE_DATA_BUF_SIZE];
@@ -491,11 +492,13 @@ void data_sync_proc(uint8_t *syncdata, uint8_t type)
 			}
 			buf[DATALEN_BIT]		= datalen;
 			buf[DATALEN_BIT + datalen + 1] = 0xFF;
-			memcpy(syncdata, buf, buf[DATALEN_BIT]+5);
+			buf[DATALEN_BIT + datalen + 2] = 0xFF;
+			buf[DATALEN_BIT + datalen + 3] = 0xFF;
+			memcpy(syncdata, buf, buf[DATALEN_BIT]+7);
 			#if USE_LTE_UART_AS_BLE
-			HAL_UART_Transmit_DMA(&huart1, syncdata, buf[DATALEN_BIT]+5);
+			HAL_UART_Transmit_DMA(&huart1, syncdata, buf[DATALEN_BIT]+7);
 			#else
-			HAL_UART_Transmit_DMA(&huart4, syncdata, buf[DATALEN_BIT]+5);
+			HAL_UART_Transmit_DMA(&huart4, syncdata, buf[DATALEN_BIT]+7);
 			#endif
 			break;
 		case FLOW_PRESS_SETTING:
@@ -526,15 +529,18 @@ void data_sync_proc(uint8_t *syncdata, uint8_t type)
 			}
 			buf[DATALEN_BIT]		= datalen;
 			buf[DATALEN_BIT + datalen + 1] = 0xFF;
-			memcpy(syncdata, buf, buf[DATALEN_BIT]+5);
+			buf[DATALEN_BIT + datalen + 2] = 0xFF;
+			buf[DATALEN_BIT + datalen + 3] = 0xFF;
+			memcpy(syncdata, buf, buf[DATALEN_BIT]+7);
 			#if USE_LTE_UART_AS_BLE
-			HAL_UART_Transmit_DMA(&huart1, syncdata, buf[DATALEN_BIT]+5);
+			HAL_UART_Transmit_DMA(&huart1, syncdata, buf[DATALEN_BIT]+7);
 			#else
-			HAL_UART_Transmit_DMA(&huart4, syncdata, buf[DATALEN_BIT]+5);
+			HAL_UART_Transmit_DMA(&huart4, syncdata, buf[DATALEN_BIT]+7);
 			#endif
 			break;
 		default:break;
 	}
+	g_sync_suc = 1;
 }
 //数据同步按钮
 void data_sync_button(uint8_t *data)

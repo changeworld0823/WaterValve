@@ -23,25 +23,25 @@
 #define PUMP_VALVE_TYPE							0x01
 #define PRESS_MANAGE_TYPE						0x02
 
-#define SET_TYPE										0x01
-#define	READ_TYPE										0x02
+#define SET_TYPE								0x01
+#define	READ_TYPE								0x02
 #define RX_BUFFER_SIZE							255
 extern uint8_t g_ble_suc_flag;
 extern uint8_t g_ble_mode;
 
-#define		VALVE_OPEN								0x01
-#define 	VALVE_CLOSE								0xFF
+#define		VALVE_OPEN							0x01
+#define 	VALVE_CLOSE							0xFF
 		
-#define		BEFORE_VALVE_PRESS				0x01
+#define		BEFORE_VALVE_PRESS				    0x01
 #define 	AFTER_VALVE_PRESS					0x02
-#define 	VALVE_FLOW								0x03
+#define 	VALVE_FLOW							0x03
 
 #define 	BATTERY_PERCENT						0x01
-#define 	LTE_SIGNAL								0x02
+#define 	LTE_SIGNAL							0x02
 
-#define   BUF_GROUP_LEN							8
+#define     BUF_GROUP_LEN					    8
 
-#define 	USE_LTE_UART_AS_BLE				1
+#define 	USE_LTE_UART_AS_BLE				    1
 
 enum n_BLE_WORK_MODE
 {
@@ -90,6 +90,7 @@ extern uint16_t g_pump_timeout;
 extern uint16_t g_pump_closedelay;
 #endif
 extern uint8_t g_adjust_range;
+extern uint8_t g_sync_suc;
 void decode_ble_recvbuf(uint8_t *data, uint8_t datasize);
 void ble_managesys_normaldata_encode(uint8_t *data, uint8_t type, uint16_t value);
 #endif

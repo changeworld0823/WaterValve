@@ -91,10 +91,10 @@ void setValveActionWithOpening(float Opening)
 }
 
 /* 误差值 */
-__weak uint16_t getTolerance(void)
+__weak float getTolerance(void)
 {
 		
-    return mem_dev.data->pressureVsTime.tolerance;
+    return (float)(mem_dev.data->pressureVsTime.tolerance /10.0);
 }
 
 /* 设置开度 */

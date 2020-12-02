@@ -88,7 +88,6 @@ struct sPID PID = {.P=0.08, .I=0.02, .D = 0,};
 /* 业务处理任务 */
 static void water_press_time_task(void *argument)
 {
-		static uint8_t count = 0;
     uint8_t ble_data[BLE_CMD_BUF_SIZE];
     /* 初始化设备 */
     init_dev();
@@ -144,15 +143,11 @@ static void water_press_time_task(void *argument)
 								continue;
 						}
 						waterPressTimeData.viewPressureIn = pressureIn;
-						if(count >= 40)		//3s进入任务一次，2min中发送一次则需要120/3=40次
+						if(g_sync_suc)		//3s进入任务一次，2min中发送一次则需要120/3=40次
 						{
 								memset(ble_data, 0, sizeof(ble_data));
 								ble_managesys_normaldata_encode(ble_data, BEFORE_VALVE_PRESS, waterPressTimeData.viewPressureIn);
-								count = 0;
-						}
-						else
-						{ 
-							count ++;
+								g_sync_suc = 0;
 						}
 						/* 获取出口压力值 */
 						uint16_t pressureOut = 0;
