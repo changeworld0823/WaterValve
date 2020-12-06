@@ -23,6 +23,9 @@
 #include "cmsis_os.h"
 #include "fram.h"
 
+/* 如果要重新初始化一下参数，把这个值改一下，然后烧录程序 */
+uint8_t FOR_INIT_ONCE = 0x60;
+
 /* 操作类型，写或读 */
 typedef enum {
   MEM_WRITE,
@@ -48,9 +51,9 @@ eMemStatus_t memInit(void)
     {
         return eMem_InitFail;
     }
-    if(memData.factoryOnceLock!=0x55)
+    if(memData.factoryOnceLock!=FOR_INIT_ONCE)
     {
-        uint8_t val = 0x55;
+        uint8_t val = FOR_INIT_ONCE;
         if(memForceSetToFactory()!=eMem_Ok)
         {
             return eMem_InitFail;
@@ -106,7 +109,7 @@ eMemStatus_t memDataOP (eMemAddrSel_t addr, void *p, memDataOpType op)
         }
       break;
       case eMemAddr_FlowVsTimeSet:          /* 流量时间参数地址 */
-        if(p_dataOP (p,addr, sizeof(memData.pressureVsTime))==0x00)
+        if(p_dataOP (p,addr, sizeof(memData.flowVsTime))==0x00)
         {
             return eMem_OpFail;
         }
@@ -149,7 +152,7 @@ eMemStatus_t memForceSetToFactory(void)
 #undef  data_op
 #define data_op(x,y)    memDataOP(x,y,MEM_WRITE)
 
-    uint8_t val = 0x55;
+    uint8_t val = FOR_INIT_ONCE;
     if(memWriteData(eMemAddr_FactoryOnceLock, &val)!=eMem_Ok)
     {
         return eMem_WriteFail;
@@ -168,7 +171,7 @@ eMemStatus_t memForceSetToFactory(void)
         i++)
     {
         for(int j=0;
-            j<sizeof(memData.pressureVsTime.cell[0])/sizeof(memData.pressureVsTime.cell[0][j]);
+            j<sizeof(memData.pressureVsTime.cell[0])/sizeof(memData.pressureVsTime.cell[0][0]);
             j++)
         {
             memData.pressureVsTime.cell[i][j].val        = DEFAULT_PressueVsTimeSet_val_VAL;
@@ -188,7 +191,7 @@ eMemStatus_t memForceSetToFactory(void)
         i++)
     {
         for(int j=0;
-            j<sizeof(memData.flowVsTime.cell[0])/sizeof(memData.flowVsTime.cell[0][j]);
+            j<sizeof(memData.flowVsTime.cell[0])/sizeof(memData.flowVsTime.cell[0][0]);
             j++)
         {
             memData.flowVsTime.cell[i][j].val        = DEFAULT_FlowVsTimeSet_val_VAL;
