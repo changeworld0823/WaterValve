@@ -89,6 +89,9 @@ struct sPID PID = {.P=0.08, .I=0.02, .D = 0,};
 static void water_press_time_task(void *argument)
 {
     uint8_t ble_data[BLE_CMD_BUF_SIZE];
+		uint16_t pressureIn = 0;
+		uint16_t pressureOut=0;
+	static uint8_t count = 0;
     /* 初始化设备 */
     init_dev();
 
@@ -101,7 +104,14 @@ static void water_press_time_task(void *argument)
     if(set_calendar_control!=0)
     {
         set_calendar_control = 0;
-        calendar_dev.set(&cld);
+				cld.year = 2020;
+				cld.month = 12;
+				cld.mday = 4;
+				cld.hour = 14;
+				cld.min = 35;
+				cld.sec = 0;
+				cld.wday = 5;
+				calendar_dev.set(&cld);
     }
     
     /* 控制系统需要保存的参数都在memData变量中。
@@ -114,7 +124,7 @@ static void water_press_time_task(void *argument)
     */
     if(reset_set_para!=0)
     {
-        mem_dev.set_para();
+        mem_dev.factory_reset();
     }
 		
 		waterPressTimeData.manualSetThr = 2;
@@ -136,27 +146,36 @@ static void water_press_time_task(void *argument)
 								g_ble_suc_flag = 0;	
 						}
 						/* 获取进口压力值 */
-						uint16_t pressureIn = 0;
+						
 						if(getPressureIn(&pressureIn)==0)
 						{
 								osDelay(1000);
 								continue;
 						}
 						waterPressTimeData.viewPressureIn = pressureIn;
-						if(g_sync_suc)		//3s进入任务一次，2min中发送一次则需要120/3=40次
-						{
-								memset(ble_data, 0, sizeof(ble_data));
-								ble_managesys_normaldata_encode(ble_data, BEFORE_VALVE_PRESS, waterPressTimeData.viewPressureIn);
-								g_sync_suc = 0;
-						}
+						
 						/* 获取出口压力值 */
-						uint16_t pressureOut = 0;
 						if(getPressureOut(&pressureOut)==0)
 						{
 								osDelay(1000);
 								continue;
 						}
 						waterPressTimeData.viewPressureOut = pressureOut;
+						
+						if(g_ble_suc_flag)	//蓝牙解码成功
+						{
+								mem_dev.set_para();			//保存蓝牙接收的数据至mem
+								g_ble_suc_flag = 0;
+						}
+						if(g_sync_suc || g_heart_bit)		//已同步或正常与蓝牙连接则发送数据
+						{
+								memset(ble_data, 0, sizeof(ble_data));
+								ble_managesys_normaldata_encode(ble_data, BEFORE_VALVE_PRESS, waterPressTimeData.viewPressureIn);
+								osDelay(200);
+								ble_managesys_normaldata_encode(ble_data, AFTER_VALVE_PRESS, waterPressTimeData.viewPressureOut);
+								g_sync_suc = 0;
+								g_heart_bit = 0;
+						}
 						/* 与压力时间数组比较 
 							 注意：wday是从1开始的，1代表周日，2代表周一。。。 
 						*/	
@@ -165,7 +184,7 @@ static void water_press_time_task(void *argument)
 
 						float pressureSet = 0;
 						uint16_t nowTime = 0;
-						nowTime = cld.hour*100+cld.min;   //当前时间转换为类似这样的格式：1530（15点30分）
+						nowTime = (cld.hour<<8)+cld.min;   //当前时间转换为类似这样的格式：1530（15点30分）
 						
 						struct PressureVsTimeItem *pTable = NULL;
 						if((cld.wday==1)||(cld.wday==7))  //周末
@@ -193,33 +212,56 @@ static void water_press_time_task(void *argument)
 										waterPressTimeData.viewNowIdx = j;
 										waterPressTimeData.viewNowTime = nowTime;
 										waterPressTimeData.viewNowSet = pressureSet;
-										
+										//close_target = 0;
 										exeCtl = true;
 										break;
 								}
+									
 						}
 						
-						if(exeCtl==false) continue;
-
+						if(exeCtl==false) {
+							setValveActionWithERR(0,0,0);
+							continue;
+						}
 						/* PI控制 */
-						float err = pressureSet-pressureOut;
-						float openVal;
+						float temp= getTolerance();
+						float pressUnder = pressureSet-temp;
+						float pressHigh = pressureSet+temp;
+						float err ;
+						if(pressUnder > pressureOut)
+						{
+								err=1;
+						}
+						if(pressHigh < pressureOut){
+							err =-1;
+						}
+						if(pressureOut >= pressUnder && pressureOut<=pressHigh) 
+							err = 0;
+						/*float openVal;
 						float p_val = PID.P*err;
 						static float i_val;
-
+						
 						i_val += PID.I*err;
 						openVal = p_val+i_val;
 
 						if(openVal>100) openVal = 100;
-						else if(openVal<0) openVal = 0;
+						else if(openVal<0) openVal = 0;*/
 						
 #if defined(USE_I_OUT)
             setValveActionWithOpening(openVal);
 #elif defined(USE_RLY_OUT)
-            setValveActionWithERR(err);
+						/*if(g_state_keep)
+						{		count ++;
+								if(count >= 3){
+										g_state_keep = 0;
+										count = 0;
+								}
+						}else{*/
+            setValveActionWithERR(err,pressureSet,pressureOut/1.0);
+						//}
 #endif
 
-						waterPressTimeData.viewOpening = openVal;
+						//waterPressTimeData.viewOpening = openVal;
 						break;
 					case CONTROL_TYPE_MANUNAL:
 						break;
@@ -233,10 +275,12 @@ static void water_press_time_task(void *argument)
 /* 配置通道的模式或类型 */
 static void configDev(void)
 {
-    /* 配置模拟输入通道1为电流输入模式，用于进口水压检测*/
+    /* 配置模拟输入通道3为电流输入模式，用于进口水压检测*/
     iv_in_dev.iv_set_mode(eIVInCH3, eIVIn_Mode_I);
     /* 配置模拟输入通道2为电流输入模式，用于出口水压检测 */
     iv_in_dev.iv_set_mode(eIVInCH2, eIVIn_Mode_I);
+		/* 配置模拟输入通道1为电流输入模式，用于出口水压检测 */
+    //iv_in_dev.iv_set_mode(eIVInCH1, eIVIn_Mode_I);
 
     #if defined(USE_I_OUT)
     /* 配置模拟输出通道为4-20ma电流输出类型，用于阀门控制 */
@@ -302,7 +346,7 @@ static uint8_t getPressureIn(uint16_t *Flow)
 }
 
 /* 返回允许的误差值 */
-float getTolerance(void)
+/*float getTolerance(void)
 {
     return memData.pressureVsTime.tolerance;
-}
+}*/

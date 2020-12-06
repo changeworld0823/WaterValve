@@ -25,6 +25,7 @@
 
 uint8_t g_control_type = CONTROL_TYPE_AUTO;
 uint8_t ble_data[BLE_DATA_BUF_SIZE];
+uint8_t g_state_keep = 0;
 /* 硬件设备初始化 */
 void init_dev(void)
 {
@@ -91,44 +92,53 @@ void setValveActionWithOpening(float Opening)
 }
 
 /* 误差值 */
-__weak float getTolerance(void)
+float getTolerance(void)
 {
 		
-    return (float)(mem_dev.data->pressureVsTime.tolerance /10.0);
+    return (float)(mem_dev.data->pressureVsTime.tolerance);
 }
 
 /* 设置开度 */
-void setValveActionWithERR(float ERR)
+void setValveActionWithERR(float ERR,float target,float current)
 {
 #if defined(USE_RLY_OUT)
   
-    if(ERR<=getTolerance())
+    /*if(ERR<=getTolerance())
     {
         ERR = 0;
-    }
+    }*/
 
 		int action;
     if(ERR>0)
     {
+				/*if((target-getTolerance()) <= current && (target + getTolerance()) >=current){
+					ERR=0;
+				}else{*/
         relay_out_dev.out(eRLYOut_CH1,false);
         //relay_out_dev.out(eRLYOut_CH2,false);
-        osDelay(100);                                        //增加适当延时，预留继电器机械反应时间
+        osDelay(100);                                     //增加适当延时，预留继电器机械反应时间
         relay_out_dev.out(eRLYOut_CH2,true);
 				action = VALVE_STATE_DOWN;
+				//}
 		}
-		else if(ERR<0)
+		if(ERR<0)
 		{
+				/*if((target-getTolerance()) <= current && (target + getTolerance()) >=current){
+					ERR = 0;
+				}else{*/
         relay_out_dev.out(eRLYOut_CH2,false);
         //relay_out_dev.out(eRLYOut_CH1,false);
         osDelay(100);                                        //增加适当延时，预留继电器机械反应时间
         relay_out_dev.out(eRLYOut_CH1,true);
 				action = VALVE_STATE_UP;
+				//}
 		}
-		else
+		if(ERR==0)
 		{
         relay_out_dev.out(eRLYOut_CH1,false);
         relay_out_dev.out(eRLYOut_CH2,false);
 				action = VALVE_STATE_KEEP;
+				g_state_keep = 1;
 		}
 #endif
 }
@@ -138,14 +148,14 @@ void manualSetValve(int Action)
     switch(Action){
       case VALVE_STATE_DOWN:
           setValveActionWithOpening(0);
-          setValveActionWithERR(-1);
+          setValveActionWithERR(-1,0,0);
           break;
       case VALVE_STATE_UP:
           setValveActionWithOpening(100);
-          setValveActionWithERR(1);
+          setValveActionWithERR(1,0,0);
           break;
       case VALVE_STATE_KEEP:
-          setValveActionWithERR(0);
+          setValveActionWithERR(0,0,0);
           break;
       default:
           break;

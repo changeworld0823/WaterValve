@@ -35,11 +35,15 @@ extern uint8_t g_ble_mode;
 #define		BEFORE_VALVE_PRESS				    0x01
 #define 	AFTER_VALVE_PRESS					0x02
 #define 	VALVE_FLOW							0x03
+#define   SYNC_TIME_PRESS					0x06
+#define 	SYNC_TIME_FLOW					0x07
+#define   SYNC_PRESS_FLOW         0x08
 
 #define 	BATTERY_PERCENT						0x01
 #define 	LTE_SIGNAL							0x02
 
 #define     BUF_GROUP_LEN					    8
+#define     BUF_GROUP_LEN_FLOW				10
 
 #define 	USE_LTE_UART_AS_BLE				    1
 
@@ -91,7 +95,9 @@ extern uint16_t g_pump_closedelay;
 #endif
 extern uint8_t g_adjust_range;
 extern uint8_t g_sync_suc;
+extern uint8_t g_heart_bit;
 void decode_ble_recvbuf(uint8_t *data, uint8_t datasize);
 void ble_managesys_normaldata_encode(uint8_t *data, uint8_t type, uint16_t value);
+void data_sync_proc(uint8_t *syncdata, uint8_t type);
 #endif
 

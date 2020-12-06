@@ -36,7 +36,7 @@
 struct water_flow_time_t{
   float viewOpening;
   float viewFlowMA;
-  uint16_t viewFlow;
+  uint32_t viewFlow;
   
   float manualSetThr;
 };
@@ -56,9 +56,9 @@ static sCalendar_t cld; //日期时间
 
 /* 函数声明 */
 static void water_flow_time_task(void *argument);
-static uint16_t ImaToFlow(float MA);
+static uint32_t ImaToFlow(float MA);
 static float openingDegreeToIma(float percent);
-static uint8_t getFlow(uint16_t *Flow);
+static uint8_t getFlow(uint32_t *Flow);
 static void configDev(void);
 static void setValveOpening(float Opening);
 static float openingDegreeToIma(float percent);
@@ -81,7 +81,7 @@ struct sPID PID = {.P=0.08, .I=0.02, .D = 0,};
 /* 业务处理任务 */
 static void water_flow_time_task(void *argument)
 {
-		uint16_t flow = 0;
+		uint32_t flow = 0;
     /* 初始化设备 */
     init_dev();
 
@@ -116,7 +116,7 @@ static void water_flow_time_task(void *argument)
     */
     if(reset_set_para!=0)
     {
-        mem_dev.set_para();
+        mem_dev.factory_reset();
     }
 
     for (;;)
@@ -134,18 +134,19 @@ static void water_flow_time_task(void *argument)
             osDelay(1000);
             continue;
         }
-				
+
 				if(g_ble_suc_flag)	//蓝牙解码成功
 				{
 						mem_dev.set_para();			//保存蓝牙接收的数据至mem
 						g_ble_suc_flag = 0;	
 				}
         waterFlowTimeData.viewFlow = flow;
-				if(g_sync_suc)		//3s进入任务一次，2min中发送一次则需要120/3=40次
+				if(g_sync_suc || g_heart_bit)		//已同步或正常与蓝牙连接则发送数据
 				{
 						memset(ble_data, 0, sizeof(ble_data));
-						ble_managesys_normaldata_encode(ble_data, VALVE_FLOW, waterFlowTimeData.viewFlow);
+						//ble_managesys_normaldata_encode(ble_data, VALVE_FLOW, waterFlowTimeData.viewFlow);
 						g_sync_suc = 0;
+						g_heart_bit = 0;
 				}
         /* 与压力时间数组比较 
            注意：wday是从1开始的，1代表周日，2代表周一。。。 
@@ -173,7 +174,7 @@ static void water_flow_time_task(void *argument)
             //判断值是否有效
             if((pTable[j].startTime==QY_DEFAULT_NOMEANING)
 							||(pTable[j].endTime==QY_DEFAULT_NOMEANING)
-							||(pTable[j].val==QY_DEFAULT_NOMEANING))
+							||(pTable[j].val==QY_DEFAULT_FLOW_NOMEANING))
             {
                 continue;
             }
@@ -186,10 +187,26 @@ static void water_flow_time_task(void *argument)
             }
         }
 
-        if(exeCtl==false) continue;
+        if(exeCtl==false) {
+						setValveActionWithERR(0,0,0);
+						continue;
+				}
         
         /* PI控制 */
-        float err = flowSet-flow;
+				float temp= getTolerance();
+				float pressUnder = flowSet-temp;
+				float pressHigh = flowSet+temp;
+				float err ;
+				if(pressUnder > flow)
+				{
+						err=1;
+				}
+				if(pressHigh < flow){
+						err =-1;
+				}
+				if(flow >= pressUnder && flow<=pressHigh) 
+						err = 0;
+        /*float err = flowSet-flow;
         float openVal;
         float p_val = PID.P*err;
         static float i_val;
@@ -198,15 +215,15 @@ static void water_flow_time_task(void *argument)
         openVal = p_val+i_val;
 
         if(openVal>100) openVal = 100;
-        else if(openVal<0) openVal = 0;
+        else if(openVal<0) openVal = 0;*/
 
 #if defined(USE_I_OUT)
         setValveActionWithOpening(openVal);
 #elif defined(USE_RLY_OUT)
-        setValveActionWithERR(err);
+        setValveActionWithERR(err,flowSet,flow/1.0);
 #endif
 
-        waterFlowTimeData.viewOpening = openVal;
+        //waterFlowTimeData.viewOpening = openVal;
 
         //elseif(g_mannual_ctl_flag == 1) //手动调节压力
         //function();
@@ -235,15 +252,15 @@ static void configDev(void)
 }
 
 /* 检测到的电流值到流量值的映射 */
-static uint16_t ImaToFlow(float MA)
+static uint32_t ImaToFlow(float MA)
 {
 		if(MA<4) 
 			return 0;
-		return (uint16_t)(18.83*MA - 75.3)*100;
+		return (uint32_t)(18.83*MA - 75.3)*100;
 }
 
 /* 获取流量值 */
-static uint8_t getFlow(uint16_t *Flow)
+static uint8_t getFlow(uint32_t *Flow)
 {
     float Ima = 0;
 	
@@ -260,7 +277,7 @@ static uint8_t getFlow(uint16_t *Flow)
 }
 
 /* 返回允许的误差值 */
-uint16_t getTolerance(void)
+/*uint16_t getTolerance(void)
 {
     return memData.flowVsTime.tolerance;
-}
+}*/

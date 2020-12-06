@@ -3,6 +3,7 @@
 #include "common.h"
 
 uint8_t g_ble_suc_flag = 0;
+uint8_t g_heart_bit = 0;
 uint8_t g_ble_mode = RAW_DATA_MODE;
 uint8_t g_adjust_range = 2;
 
@@ -49,7 +50,7 @@ void decode_ble_recvbuf(uint8_t *data, uint8_t datasize)
 						break;
 		}
 		
-		g_ble_suc_flag = 1;
+		g_heart_bit = 1;
 }
 
 /**************************************************************
@@ -251,10 +252,12 @@ void ble_rawdata_decode(uint8_t *data, uint8_t datasize)			//蓝牙透传数据解码
 							default:
 									break;
 					}
+					g_ble_suc_flag = 1;
 					break;
 			default: 
 					break;
 		}
+		
 }
 
 //设置开阀延时时间
@@ -323,6 +326,20 @@ void set_time_press(uint8_t *data)
 		uint8_t i = 0;
 		uint8_t bufnum					= buf[3] / BUF_GROUP_LEN;
 		uint8_t current_id = 0;
+		 /* 恢复压力-时间默认值 */
+    for(i=0;
+        i<sizeof(mem_dev.data->pressureVsTime.cell)/sizeof(mem_dev.data->pressureVsTime.cell[0]);
+        i++)
+    {
+        for(int j=0;
+            j<sizeof(mem_dev.data->pressureVsTime.cell[0])/sizeof(memData.pressureVsTime.cell[0][j]);
+            j++)
+        {
+            mem_dev.data->pressureVsTime.cell[i][j].val        = DEFAULT_PressueVsTimeSet_val_VAL;
+            mem_dev.data->pressureVsTime.cell[i][j].startTime  = DEFAULT_PressueVsTimeSet_startTime_VAL;
+            mem_dev.data->pressureVsTime.cell[i][j].endTime    = DEFAULT_PressueVsTimeSet_endTime_VAL;
+        }
+    }
 		for(i = 0; i < bufnum; i++)
 		{
 				current_id = 4 + (i * BUF_GROUP_LEN);
@@ -344,16 +361,17 @@ void set_time_flow(uint8_t *data)
 {
 		uint8_t *buf = data;
 		uint8_t i = 0;
-		uint8_t bufnum					= buf[3] / BUF_GROUP_LEN;
+		uint8_t bufnum					= buf[3] / BUF_GROUP_LEN_FLOW;
 		uint8_t current_id = 0;
 		for(i = 0; i < bufnum; i++)
 		{
-				current_id = 4 + (i * BUF_GROUP_LEN);
+				current_id = 4 + (i * BUF_GROUP_LEN_FLOW);
 				uint8_t bufid 					= buf[current_id] - 1;																										//包序号，buf从0开始所以需要-1
 				uint8_t wkday  					= buf[current_id + 1] - 1;																								//工作日/周末,buf从0开始所以需要-1
 				uint16_t begin_time 			= (buf[current_id + 2] << 8) + buf[current_id + 3];											//起始时间
 				uint16_t end_time 				= (buf[current_id + 4] << 8) + buf[current_id + 5];											//终止时间
-				uint16_t flow_value 		= (buf[current_id + 6] << 8) + buf[current_id + 7];												//流量值
+				uint32_t flow_value 		= (buf[current_id + 6] << 24) + (buf[current_id + 7] << 16) 
+																+ (buf[current_id + 8] << 8) + buf[current_id + 9];	//流量值
 			
 				//写入mem存储内部
 				mem_dev.data->flowVsTime.cell[wkday][bufid].startTime = begin_time;
@@ -473,13 +491,13 @@ void data_sync_proc(uint8_t *syncdata, uint8_t type)
 	uint8_t current_id = 0;
 	memset(buf, 0, sizeof(buf));
 	buf[DEVICE_TYPE_BIT] 	= PRESS_MANAGE_TYPE;
-	buf[READ_WRITE_BIT]	 	= READ_TYPE;
-	buf[PACK_TYPE_BIT]		= type;							
+	buf[READ_WRITE_BIT]	 	= READ_TYPE;					
 	struct PressureVsTimeItem *pTable = NULL;
 	struct FlowVsTimeItem *fTable = NULL;
 	switch(type)
 	{
 		case TIME_PRESS_SETTING:
+			buf[PACK_TYPE_BIT]		= SYNC_TIME_PRESS;		
 			for(int i = 0; i < 2; i++)
 			{	
 				bufid = 0;
@@ -490,15 +508,15 @@ void data_sync_proc(uint8_t *syncdata, uint8_t type)
 					{
 						continue;
 					}
-					current_id = 4 + (j * BUF_GROUP_LEN) + datalen;
-					buf[current_id] = bufid;
-					buf[current_id + 1] = i;
-					buf[current_id + 2] = (mem_dev.data->pressureVsTime.cell[i][bufid].startTime >> 8) & 0xFF;
-					buf[current_id + 3] = mem_dev.data->pressureVsTime.cell[i][bufid].startTime & 0xFF;
-					buf[current_id + 4] = (mem_dev.data->pressureVsTime.cell[i][bufid].endTime >> 8) & 0xFF;
-					buf[current_id + 5] = mem_dev.data->pressureVsTime.cell[i][bufid].endTime & 0xFF;
-					buf[current_id + 6] = (mem_dev.data->pressureVsTime.cell[i][bufid].val >> 8) & 0xFF;
-					buf[current_id + 7] = mem_dev.data->pressureVsTime.cell[i][bufid].val & 0xFF;
+					current_id = 4 + (bufid * BUF_GROUP_LEN) + datalen;
+					buf[current_id] = j + 1;
+					buf[current_id + 1] = i + 1;
+					buf[current_id + 2] = (mem_dev.data->pressureVsTime.cell[i][j].startTime >> 8) & 0xFF;
+					buf[current_id + 3] = mem_dev.data->pressureVsTime.cell[i][j].startTime & 0xFF;
+					buf[current_id + 4] = (mem_dev.data->pressureVsTime.cell[i][j].endTime >> 8) & 0xFF;
+					buf[current_id + 5] = mem_dev.data->pressureVsTime.cell[i][j].endTime & 0xFF;
+					buf[current_id + 6] = (mem_dev.data->pressureVsTime.cell[i][j].val >> 8) & 0xFF;
+					buf[current_id + 7] = mem_dev.data->pressureVsTime.cell[i][j].val & 0xFF;
 					bufid++;
 				}
 				datalen += bufid * BUF_GROUP_LEN;
@@ -515,30 +533,34 @@ void data_sync_proc(uint8_t *syncdata, uint8_t type)
 			#endif
 			break;
 		case FLOW_PRESS_SETTING:
+			buf[PACK_TYPE_BIT]		= SYNC_PRESS_FLOW;
 			break;
 		case TIME_FLOW_SETTING:
+			buf[PACK_TYPE_BIT]		= SYNC_TIME_FLOW;
 			for(int i = 0; i < 2; i++)
 			{	
 				bufid = 0;
 				fTable = &mem_dev.data->flowVsTime.cell[i][0];
 				for(int j = 0; j < sizeof(mem_dev.data->flowVsTime.cell[0])/sizeof(mem_dev.data->flowVsTime.cell[0][0]); j++)
 				{
-					if((fTable[j].startTime==QY_DEFAULT_NOMEANING)||(fTable[j].endTime==QY_DEFAULT_NOMEANING)||(fTable[j].val==QY_DEFAULT_NOMEANING))
+					if((fTable[j].startTime==QY_DEFAULT_NOMEANING)||(fTable[j].endTime==QY_DEFAULT_NOMEANING)||(fTable[j].val==QY_DEFAULT_FLOW_NOMEANING))
 					{
 						continue;
 					}
-					current_id = 4 + (j * BUF_GROUP_LEN) + datalen;
-					buf[current_id] = bufid;
-					buf[current_id + 1] = i;
-					buf[current_id + 2] = (mem_dev.data->flowVsTime.cell[i][bufid].startTime >> 8) & 0xFF;
-					buf[current_id + 3] = mem_dev.data->flowVsTime.cell[i][bufid].startTime & 0xFF;
-					buf[current_id + 4] = (mem_dev.data->flowVsTime.cell[i][bufid].endTime >> 8) & 0xFF;
-					buf[current_id + 5] = mem_dev.data->flowVsTime.cell[i][bufid].endTime & 0xFF;
-					buf[current_id + 6] = (mem_dev.data->flowVsTime.cell[i][bufid].val >> 8) & 0xFF;
-					buf[current_id + 7] = mem_dev.data->flowVsTime.cell[i][bufid].val & 0xFF;
+					current_id = 4 + (bufid * BUF_GROUP_LEN_FLOW) + datalen;
+					buf[current_id] = j + 1;
+					buf[current_id + 1] = i + 1;
+					buf[current_id + 2] = (mem_dev.data->flowVsTime.cell[i][j].startTime >> 8) & 0xFF;
+					buf[current_id + 3] = mem_dev.data->flowVsTime.cell[i][j].startTime & 0xFF;
+					buf[current_id + 4] = (mem_dev.data->flowVsTime.cell[i][j].endTime >> 8) & 0xFF;
+					buf[current_id + 5] = mem_dev.data->flowVsTime.cell[i][j].endTime & 0xFF;
+					buf[current_id + 6] = (mem_dev.data->flowVsTime.cell[i][j].val >> 24) & 0xFF;
+					buf[current_id + 7] = (mem_dev.data->flowVsTime.cell[i][j].val >> 16) & 0xFF;
+					buf[current_id + 8] = (mem_dev.data->flowVsTime.cell[i][j].val >> 8) & 0xFF;
+					buf[current_id + 9] = mem_dev.data->flowVsTime.cell[i][j].val & 0xFF;
 					bufid++;
 				}
-				datalen += bufid * BUF_GROUP_LEN;
+				datalen += bufid * BUF_GROUP_LEN_FLOW;
 			}
 			buf[DATALEN_BIT]		= datalen;
 			buf[DATALEN_BIT + datalen + 1] = 0xFF;

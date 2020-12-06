@@ -44,12 +44,12 @@ typedef struct
     uint16_t tolerance;                    /* 允许的误差值 */
 } sPressureVsTime_t;
 
-/* 压力-时间数组 */
+/* 流量-时间数组 */
 struct FlowVsTimeItem
 {
     uint16_t startTime;
     uint16_t endTime;
-    uint16_t val;
+    uint32_t val;
 };
 typedef struct
 {
@@ -93,17 +93,18 @@ typedef enum {
 /* 默认值 step 3*/
 #define DEFAULT_DelayOpenTimeSet_VAL            1000      /* 1000ms */
 #define QY_DEFAULT_NOMEANING										0xffff
+#define QY_DEFAULT_FLOW_NOMEANING								0xffffffff
 /* 压力-时间的默认设置值 */
 #define DEFAULT_PressueVsTimeSet_val_VAL        	QY_DEFAULT_NOMEANING    /* Kpa？Mpa？单位根据传感器而定 */
 #define DEFAULT_PressueVsTimeSet_startTime_VAL  	QY_DEFAULT_NOMEANING    /* 无效值 */
 #define DEFAULT_PressueVsTimeSet_endTime_VAL    	QY_DEFAULT_NOMEANING    /* 无效值 */
-#define DEFAULT_PressueVsTimeSet_tolerance_VAL    0                       /* Kpa？Mpa？单位根据传感器而定 */
+#define DEFAULT_PressueVsTimeSet_tolerance_VAL    2                       /* Kpa？Mpa？单位根据传感器而定 */
 
 /* 流量-时间的默认设置值 */
-#define DEFAULT_FlowVsTimeSet_val_VAL           	QY_DEFAULT_NOMEANING    /* 单位待定。单位根据传感器而定 */
+#define DEFAULT_FlowVsTimeSet_val_VAL           	QY_DEFAULT_FLOW_NOMEANING    /* 单位待定。单位根据传感器而定 */
 #define DEFAULT_FlowVsTimeSet_startTime_VAL     	QY_DEFAULT_NOMEANING    /* 无效值 */
 #define DEFAULT_FlowVsTimeSet_endTime_VAL       	QY_DEFAULT_NOMEANING    /* 无效值 */
-#define DEFAULT_FlowVsTimeSet_tolerance_VAL       0                       /* Kpa？Mpa？单位根据传感器而定 */
+#define DEFAULT_FlowVsTimeSet_tolerance_VAL       2                       /* Kpa？Mpa？单位根据传感器而定 */
 
 /* 流量-压力的默认设置值 */
 #define DEFAULT_PressureVsFlowSet_pressureVal_VAL  QY_DEFAULT_NOMEANING    /* 无效值 */

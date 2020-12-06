@@ -38,10 +38,11 @@
 #define 	BUFSIZE_MAX						255
 extern uint8_t ble_data[BUFSIZE_MAX];
 extern uint8_t g_control_type;
+extern uint8_t g_state_keep;
 void init_dev(void);
 
 void manualSetValve(int Action);
-void setValveActionWithERR(float ERR);
+void setValveActionWithERR(float ERR,float target,float current);
 void setValveActionWithOpening(float Opening);
-
+float getTolerance(void);
 #endif
