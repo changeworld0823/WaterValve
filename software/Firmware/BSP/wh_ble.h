@@ -35,9 +35,10 @@ extern uint8_t g_ble_mode;
 #define		BEFORE_VALVE_PRESS				    0x01
 #define 	AFTER_VALVE_PRESS					0x02
 #define 	VALVE_FLOW							0x03
-#define   SYNC_TIME_PRESS					0x06
-#define 	SYNC_TIME_FLOW					0x07
-#define   SYNC_PRESS_FLOW         0x08
+#define     SYNC_TIME_PRESS					    0x06
+#define 	SYNC_TIME_FLOW					    0x07
+#define     SYNC_PRESS_FLOW                     0x08
+#define     SYNC_TIME_DATA                      0x09
 
 #define 	BATTERY_PERCENT						0x01
 #define 	LTE_SIGNAL							0x02

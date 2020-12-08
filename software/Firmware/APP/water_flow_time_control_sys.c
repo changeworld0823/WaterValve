@@ -82,6 +82,8 @@ struct sPID PID = {.P=0.08, .I=0.02, .D = 0,};
 static void water_flow_time_task(void *argument)
 {
 		uint32_t flow = 0;
+		uint8_t timedata[BLE_DATA_BUF_SIZE];
+		uint8_t datalen = 0;
     /* 初始化设备 */
     init_dev();
 
@@ -138,6 +140,28 @@ static void water_flow_time_task(void *argument)
 		{
 			calendar_dev.set(&g_snc_cld);
 			g_sync_time = 0;
+			//debug
+			memset(timedata, 0, sizeof(timedata));
+			timedata[DEVICE_TYPE_BIT] 	= PRESS_MANAGE_TYPE;
+			timedata[READ_WRITE_BIT]	 	= READ_TYPE;
+			timedata[PACK_TYPE_BIT]		= SYNC_TIME_DATA;
+			timedata[DATALEN_BIT]		= 0x07;
+			datalen					= timedata[DATALEN_BIT];
+			timedata[DATALEN_BIT + 1]	= (g_snc_cld.year >> 8) & 0xff;
+			timedata[DATALEN_BIT + 2]	= g_snc_cld.year & 0xff;
+			timedata[DATALEN_BIT + 3]	= g_snc_cld.month;
+			timedata[DATALEN_BIT + 4]	= g_snc_cld.day;
+			timedata[DATALEN_BIT + 5]	= g_snc_cld.hour;
+			timedata[DATALEN_BIT + 6]	= g_snc_cld.min;
+			timedata[DATALEN_BIT + 7]	= g_snc_cld.wday;
+			timedata[DATALEN_BIT + datalen + 1] = 0xFF;
+			timedata[DATALEN_BIT + datalen + 2] = 0xFF;
+			timedata[DATALEN_BIT + datalen + 3] = 0xFF;
+			#if USE_LTE_UART_AS_BLE
+			HAL_UART_Transmit_DMA(&huart1, timedata, timedata[DATALEN_BIT]+7);
+			#else
+			HAL_UART_Transmit_DMA(&huart4, timedata, timedata[DATALEN_BIT]+7);
+			#endif
 		}
 		if(g_ble_suc_flag)	//蓝牙解码成功
 		{
