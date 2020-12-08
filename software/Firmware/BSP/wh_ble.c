@@ -249,6 +249,9 @@ void ble_rawdata_decode(uint8_t *data, uint8_t datasize)			//蓝牙透传数据解码
 							case DATA_SYNC_BUTTON:					//数据同步按钮
 								data_sync_button(buf);
 									break;
+							case TIME_SYNC_BUTTON:					//时间同步按钮
+								time_sync_button(buf);
+								break;
 							default:
 									break;
 					}
@@ -576,6 +579,24 @@ void data_sync_proc(uint8_t *syncdata, uint8_t type)
 		default:break;
 	}
 	g_sync_suc = 1;
+}
+
+//时间同步按钮
+uint8_t g_sync_time = 0;
+sCalendar_t g_snc_cld;
+void time_sync_button(uint8_t *data)
+{
+	uint8_t *buf = data;
+	uint8_t timedata[BLE_DATA_BUF_SIZE];
+	if(buf[DATALEN_BIT] != 0x07)			//判断长度是否一致
+		return;
+	g_snc_cld.year 	= (buf[DATALEN_BIT + 1] << 8) + buf[DATALEN_BIT + 2];
+	g_snc_cld.month 	=  buf[DATALEN_BIT + 3];
+	g_snc_cld.day 	=  buf[DATALEN_BIT + 4];
+	g_snc_cld.hour 	=  buf[DATALEN_BIT + 5];
+	g_snc_cld.min 	=  buf[DATALEN_BIT + 6];
+	g_snc_cld.wday 	=  buf[DATALEN_BIT + 7];
+	g_sync_time = 1;
 }
 //数据同步按钮
 void data_sync_button(uint8_t *data)

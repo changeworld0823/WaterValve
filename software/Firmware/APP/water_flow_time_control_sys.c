@@ -134,20 +134,24 @@ static void water_flow_time_task(void *argument)
             osDelay(1000);
             continue;
         }
-
-				if(g_ble_suc_flag)	//蓝牙解码成功
-				{
-						mem_dev.set_para();			//保存蓝牙接收的数据至mem
-						g_ble_suc_flag = 0;	
-				}
+		if(g_sync_time)
+		{
+			calendar_dev.set(&g_snc_cld);
+			g_sync_time = 0;
+		}
+		if(g_ble_suc_flag)	//蓝牙解码成功
+		{
+			mem_dev.set_para();			//保存蓝牙接收的数据至mem
+			g_ble_suc_flag = 0;	
+		}
         waterFlowTimeData.viewFlow = flow;
-				if(g_sync_suc || g_heart_bit)		//已同步或正常与蓝牙连接则发送数据
-				{
-						memset(ble_data, 0, sizeof(ble_data));
-						//ble_managesys_normaldata_encode(ble_data, VALVE_FLOW, waterFlowTimeData.viewFlow);
-						g_sync_suc = 0;
-						g_heart_bit = 0;
-				}
+		if(g_sync_suc || g_heart_bit)		//已同步或正常与蓝牙连接则发送数据
+		{
+			memset(ble_data, 0, sizeof(ble_data));
+			//ble_managesys_normaldata_encode(ble_data, VALVE_FLOW, waterFlowTimeData.viewFlow);
+			g_sync_suc = 0;
+			g_heart_bit = 0;
+		}
         /* 与压力时间数组比较 
            注意：wday是从1开始的，1代表周日，2代表周一。。。 
         */

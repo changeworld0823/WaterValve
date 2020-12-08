@@ -87,6 +87,7 @@ enum n_BLE_COMMAND_TYPE{
 		AUTORUN_BUTTON,
 		HALF_AUTORUN_BUTTON,
 		DATA_SYNC_BUTTON,
+		TIME_SYNC_BUTTON,
 };
 
 #if WORKTYPE_PUMPCONTROL
@@ -95,6 +96,8 @@ extern uint16_t g_pump_closedelay;
 #endif
 extern uint8_t g_adjust_range;
 extern uint8_t g_sync_suc;
+extern uint8_t g_sync_time;
+extern sCalendar_t g_snc_cld;
 extern uint8_t g_heart_bit;
 void decode_ble_recvbuf(uint8_t *data, uint8_t datasize);
 void ble_managesys_normaldata_encode(uint8_t *data, uint8_t type, uint16_t value);
