@@ -54,7 +54,7 @@ eMemStatus_t memInit(void)
     if(memData.factoryOnceLock!=FOR_INIT_ONCE)
     {
         uint8_t val = FOR_INIT_ONCE;
-        if(memForceSetToFactory()!=eMem_Ok)
+        /*if(memForceSetToFactory()!=eMem_Ok)
         {
             return eMem_InitFail;
         }
@@ -62,7 +62,7 @@ eMemStatus_t memInit(void)
         {
             return eMem_InitFail;
         }
-        soundSetEffect(FACTORY_TEST);
+        soundSetEffect(FACTORY_TEST);*/
     }
     else
     {

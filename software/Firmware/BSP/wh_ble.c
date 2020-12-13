@@ -30,6 +30,7 @@ void close_valve_delay(uint8_t *data);
 void close_valve_timeout(uint8_t *data);
 void mannul_valve_ctrl(uint8_t *data);
 void data_sync_button(uint8_t *data);
+void time_sync_button(uint8_t *data);
 //extern UART_HandleTypeDef huart3;
 void decode_ble_recvbuf(uint8_t *data, uint8_t datasize)
 {
@@ -217,12 +218,15 @@ void ble_rawdata_decode(uint8_t *data, uint8_t datasize)			//蓝牙透传数据解码
 					switch(*(buf + 2)){		//函数包类型
 							case TIME_PRESS_SETTING:				//设置时间对应的压力值
 									set_time_press(buf);
+									g_ble_suc_flag = 1;
 									break;
 							case FLOW_PRESS_SETTING:				//设置流量对应压力
 									set_flow_press(buf);
+									g_ble_suc_flag = 1;
 									break;
 							case TIME_FLOW_SETTING:				//设置时间对应流量
 									set_time_flow(buf);
+									g_ble_suc_flag = 1;
 									break;
 							case AFTER_VALVE_TARGET_PRESS_SETTING:				//设置目标阀后压力值
 									set_af_valve_press(buf);
@@ -241,6 +245,7 @@ void ble_rawdata_decode(uint8_t *data, uint8_t datasize)			//蓝牙透传数据解码
 									break;
 							case ADJUST_RANGE_SETTING:					//调节区间设置
 									valve_adjust_range(buf);
+									g_ble_suc_flag = 1;
 									break;
 							case AUTORUN_BUTTON:					//自动运行按钮
 									break;
@@ -255,7 +260,7 @@ void ble_rawdata_decode(uint8_t *data, uint8_t datasize)			//蓝牙透传数据解码
 							default:
 									break;
 					}
-					g_ble_suc_flag = 1;
+					
 					break;
 			default: 
 					break;
@@ -591,7 +596,7 @@ void time_sync_button(uint8_t *data)
 		return;
 	g_snc_cld.year 	= (buf[DATALEN_BIT + 1] << 8) + buf[DATALEN_BIT + 2];
 	g_snc_cld.month =  buf[DATALEN_BIT + 3];
-	g_snc_cld.day 	=  buf[DATALEN_BIT + 4];
+	g_snc_cld.mday 	=  buf[DATALEN_BIT + 4];
 	g_snc_cld.hour 	=  buf[DATALEN_BIT + 5];
 	g_snc_cld.min 	=  buf[DATALEN_BIT + 6];
 	g_snc_cld.wday 	=  buf[DATALEN_BIT + 7];

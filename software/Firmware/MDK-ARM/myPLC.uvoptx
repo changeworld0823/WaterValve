@@ -181,18 +181,18 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>89</LineNumber>
+          <LineNumber>247</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134252674</Address>
+          <Address>134238930</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\APP\water_flow_time_control_sys.c</Filename>
+          <Filename>..\BSP\wh_ble.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\\../APP/water_flow_time_control_sys.c\89</Expression>
+          <Expression>\\myPLC\../BSP/wh_ble.c\247</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -280,6 +280,31 @@
           <count>16</count>
           <WinNumber>1</WinNumber>
           <ItemText>buf</ItemText>
+        </Ww>
+        <Ww>
+          <count>17</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>cld,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>18</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>pressUnder</ItemText>
+        </Ww>
+        <Ww>
+          <count>19</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>pressHigh</ItemText>
+        </Ww>
+        <Ww>
+          <count>20</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>flow,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>21</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>Ima</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>

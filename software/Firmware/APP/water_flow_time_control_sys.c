@@ -84,14 +84,13 @@ static void water_flow_time_task(void *argument)
 		uint32_t flow = 0;
 		uint8_t timedata[BLE_DATA_BUF_SIZE];
 		uint8_t datalen = 0;
+		static uint8_t s_timecount = 0;
+		static uint8_t s_arriveflag = 0;
     /* 初始化设备 */
     init_dev();
 
     /* 配置通道模式或类型 */
     configDev();
-		HAL_GPIO_WritePin(BLE_RST_GPIO_Port, BLE_RST_Pin, GPIO_PIN_RESET);
-		osDelay(1000);
-		HAL_GPIO_WritePin(BLE_RST_GPIO_Port, BLE_RST_Pin, GPIO_PIN_SET);
     /* 如果要改时间，将set_calendar_control置为不为零的值 
        注意：wday是从1开始的，1代表周日，2代表周一。。。
     */
@@ -129,53 +128,50 @@ static void water_flow_time_task(void *argument)
             osDelay(1000);
             continue;
         }
+				if(g_sync_time)		//时间同步
+				{
+					calendar_dev.set(&g_snc_cld);
+					g_sync_time = 0;
+					osDelay(200);
+				}
+				if(g_ble_suc_flag)	//蓝牙解码成功
+				{
+					mem_dev.set_para();			//保存蓝牙接收的数据至mem
+					g_ble_suc_flag = 0;	
+					osDelay(200);
+				}			
         /* 获取进口压力值 */
-				
-        if(getFlow(&flow)==0)
-        {
-            osDelay(1000);
-            continue;
-        }
-		if(g_sync_time)
-		{
-			calendar_dev.set(&g_snc_cld);
-			g_sync_time = 0;
-			//debug
-			memset(timedata, 0, sizeof(timedata));
-			timedata[DEVICE_TYPE_BIT] 	= PRESS_MANAGE_TYPE;
-			timedata[READ_WRITE_BIT]	 	= READ_TYPE;
-			timedata[PACK_TYPE_BIT]		= SYNC_TIME_DATA;
-			timedata[DATALEN_BIT]		= 0x07;
-			datalen					= timedata[DATALEN_BIT];
-			timedata[DATALEN_BIT + 1]	= (g_snc_cld.year >> 8) & 0xff;
-			timedata[DATALEN_BIT + 2]	= g_snc_cld.year & 0xff;
-			timedata[DATALEN_BIT + 3]	= g_snc_cld.month;
-			timedata[DATALEN_BIT + 4]	= g_snc_cld.day;
-			timedata[DATALEN_BIT + 5]	= g_snc_cld.hour;
-			timedata[DATALEN_BIT + 6]	= g_snc_cld.min;
-			timedata[DATALEN_BIT + 7]	= g_snc_cld.wday;
-			timedata[DATALEN_BIT + datalen + 1] = 0xFF;
-			timedata[DATALEN_BIT + datalen + 2] = 0xFF;
-			timedata[DATALEN_BIT + datalen + 3] = 0xFF;
-			#if USE_LTE_UART_AS_BLE
-			HAL_UART_Transmit_DMA(&huart1, timedata, timedata[DATALEN_BIT]+7);
-			#else
-			HAL_UART_Transmit_DMA(&huart4, timedata, timedata[DATALEN_BIT]+7);
-			#endif
-		}
-		if(g_ble_suc_flag)	//蓝牙解码成功
-		{
-			mem_dev.set_para();			//保存蓝牙接收的数据至mem
-			g_ble_suc_flag = 0;	
-		}
-        waterFlowTimeData.viewFlow = flow;
-		if(g_sync_suc || g_heart_bit)		//已同步或正常与蓝牙连接则发送数据
-		{
-			memset(ble_data, 0, sizeof(ble_data));
-			//ble_managesys_normaldata_encode(ble_data, VALVE_FLOW, waterFlowTimeData.viewFlow);
-			g_sync_suc = 0;
-			g_heart_bit = 0;
-		}
+				/*if(s_arriveflag)
+				{
+					s_timecount ++;		
+					if(s_timecount >= 10)
+					{
+						if(getFlow(&flow)==0)
+						{
+								osDelay(1000);
+								continue;
+						}
+						waterFlowTimeData.viewFlow = flow;
+						s_timecount = 0;
+				}
+				}*/
+				//else if(!s_arriveflag)
+				//{
+					if(getFlow(&flow)==0)
+					{
+							osDelay(1000);
+							continue;
+					}
+					waterFlowTimeData.viewFlow = flow;
+				//}
+				if(g_sync_suc || g_heart_bit)		//已同步或正常与蓝牙连接则发送数据
+				{
+					memset(ble_data, 0, sizeof(ble_data));
+					ble_managesys_normaldata_encode(ble_data, VALVE_FLOW, waterFlowTimeData.viewFlow);
+					g_sync_suc = 0;
+					g_heart_bit = 0;
+					osDelay(200);
+				}
         /* 与压力时间数组比较 
            注意：wday是从1开始的，1代表周日，2代表周一。。。 
         */
@@ -185,7 +181,7 @@ static void water_flow_time_task(void *argument)
 
         float flowSet = 0;
         uint16_t nowTime = 0;
-        nowTime = cld.hour*100+cld.min;   //当前时间转换为类似这样的格式：1530（15点30分）
+        nowTime = (cld.hour<<8)+cld.min;   //当前时间转换为类似这样的格式：1530（15点30分）
         
         struct FlowVsTimeItem *pTable = NULL;
         if((cld.wday==1)||(cld.wday==7))  //周末
@@ -221,19 +217,31 @@ static void water_flow_time_task(void *argument)
 				}
         
         /* PI控制 */
-				float temp= getTolerance();
-				float pressUnder = flowSet-temp;
-				float pressHigh = flowSet+temp;
+				float temp = getTolerance() / 100.0;
+				float pressUnder = flowSet*(1 - temp);//-temp;
+				float pressHigh = flowSet*(1 + temp);//+temp;
 				float err ;
 				if(pressUnder > flow)
 				{
-						err=1;
+						//err=1;
+						setValveActionWithERR(1,flowSet,flow/1.0);
+						osDelay(2000);
+						setValveActionWithERR(0,flowSet,flow/1.0);
+						osDelay(10000);
 				}
-				if(pressHigh < flow){
-						err =-1;
+				else if(pressHigh < flow){
+						//err =-1;
+						setValveActionWithERR(-1,flowSet,flow/1.0);
+						osDelay(2000);
+						setValveActionWithERR(0,flowSet,flow/1.0);
+						osDelay(10000);
 				}
-				if(flow >= pressUnder && flow<=pressHigh) 
-						err = 0;
+				else if(flow >= pressUnder && flow<=pressHigh)
+				{					
+						setValveActionWithERR(0,flowSet,flow/1.0);
+						osDelay(10000);
+						s_arriveflag = 1;
+				}
         /*float err = flowSet-flow;
         float openVal;
         float p_val = PID.P*err;
@@ -248,14 +256,15 @@ static void water_flow_time_task(void *argument)
 #if defined(USE_I_OUT)
         setValveActionWithOpening(openVal);
 #elif defined(USE_RLY_OUT)
-        setValveActionWithERR(err,flowSet,flow/1.0);
+        //setValveActionWithERR(err,flowSet,flow/1.0);
+				//osDelay(10000);
 #endif
 
         //waterFlowTimeData.viewOpening = openVal;
 
         //elseif(g_mannual_ctl_flag == 1) //手动调节压力
         //function();
-        osDelay(3000);
+        osDelay(1000);
     }
 }
 
@@ -284,7 +293,7 @@ static uint32_t ImaToFlow(float MA)
 {
 		if(MA<4) 
 			return 0;
-		return (uint32_t)(18.83*MA - 75.3)*100;
+		return (uint32_t)(24.69*MA - 94.06)*100.0;
 }
 
 /* 获取流量值 */

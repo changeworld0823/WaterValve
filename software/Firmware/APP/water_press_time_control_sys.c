@@ -140,6 +140,11 @@ static void water_press_time_task(void *argument)
 								osDelay(1000);
 								continue;
 						}
+						if(g_sync_time)
+						{
+							calendar_dev.set(&g_snc_cld);
+							g_sync_time = 0;
+						}
 						if(g_ble_suc_flag)	//蓝牙解码成功
 						{
 								mem_dev.set_para();			//保存蓝牙接收的数据至mem

@@ -104,7 +104,7 @@ typedef enum {
 #define DEFAULT_FlowVsTimeSet_val_VAL           	QY_DEFAULT_FLOW_NOMEANING    /* 单位待定。单位根据传感器而定 */
 #define DEFAULT_FlowVsTimeSet_startTime_VAL     	QY_DEFAULT_NOMEANING    /* 无效值 */
 #define DEFAULT_FlowVsTimeSet_endTime_VAL       	QY_DEFAULT_NOMEANING    /* 无效值 */
-#define DEFAULT_FlowVsTimeSet_tolerance_VAL       2                       /* Kpa？Mpa？单位根据传感器而定 */
+#define DEFAULT_FlowVsTimeSet_tolerance_VAL       10                       /* Kpa？Mpa？单位根据传感器而定 */
 
 /* 流量-压力的默认设置值 */
 #define DEFAULT_PressureVsFlowSet_pressureVal_VAL  QY_DEFAULT_NOMEANING    /* 无效值 */
