@@ -211,9 +211,9 @@ eMemStatus_t memForceSetToFactory(void)
         j++)
     {
         memData.pressureVsFlow.cell[j].pressureVal  = DEFAULT_PressureVsFlowSet_pressureVal_VAL;
-        memData.pressureVsFlow.cell[j].startFlow    = DEFAULT_PressureVsFlowSet_startFlow_VAL;
-        memData.pressureVsFlow.cell[j].endFlow      = DEFAULT_PressureVsFlowSet_endFlow_VAL;
+        memData.pressureVsFlow.cell[j].maxFlow    = DEFAULT_PressureVsFlowSet_maxFlow_VAL;
     }
+    memData.pressureVsFlow.tolerance = DEFAULT_PressureVsFlowSet_tolerance_VAL;
     if(data_op(eMemAddr_PressureVsFlowSet, &memData.pressureVsFlow)!=eMem_Ok)
     {
         return eMem_WriteFail;

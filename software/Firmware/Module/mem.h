@@ -61,12 +61,13 @@ typedef struct
 struct PressureVsFlowItem
 {
     uint16_t pressureVal;
-    uint16_t startFlow;                             
-    uint16_t endFlow;
+    uint32_t maxFlow;
 };
+
 typedef struct
 {
-    struct PressureVsFlowItem cell[12];  /* 最多12个时间段设置 */
+    struct PressureVsFlowItem cell[6];  /* 6涓祦閲忔璁剧疆 */
+    uint16_t tolerance;                 /* 鍏佽鐨勮宸€?*/
 } sPressureVsFlow_t;
 
 /* 存储的变量 step 1*/
@@ -107,10 +108,9 @@ typedef enum {
 #define DEFAULT_FlowVsTimeSet_tolerance_VAL       10                       /* Kpa？Mpa？单位根据传感器而定 */
 
 /* 流量-压力的默认设置值 */
-#define DEFAULT_PressureVsFlowSet_pressureVal_VAL  QY_DEFAULT_NOMEANING    /* 无效值 */
-#define DEFAULT_PressureVsFlowSet_startFlow_VAL    QY_DEFAULT_NOMEANING    /* 无效值 */
-#define DEFAULT_PressureVsFlowSet_endFlow_VAL      QY_DEFAULT_NOMEANING    /* 无效值 */
-
+#define DEFAULT_PressureVsFlowSet_pressureVal_VAL  QY_DEFAULT_NOMEANING    /* 鏃犳晥鍊?*/
+#define DEFAULT_PressureVsFlowSet_maxFlow_VAL      QY_DEFAULT_FLOW_NOMEANING    /* 鏃犳晥鍊?*/
+#define DEFAULT_PressureVsFlowSet_tolerance_VAL    2                       /* Kpa锛烳pa锛熷崟浣嶆牴鎹紶鎰熷櫒鑰屽畾 */
 
 /* 存储设备结构体 */
 typedef struct

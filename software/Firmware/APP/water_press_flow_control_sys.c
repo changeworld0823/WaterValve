@@ -84,7 +84,18 @@ static void water_press_flow_task(void *argument)
             osDelay(1000);
             continue;
         }
-        
+        if(g_sync_time)		//时间同步
+				{
+					calendar_dev.set(&g_snc_cld);
+					g_sync_time = 0;
+					osDelay(200);
+				}
+				if(g_ble_suc_flag)	//蓝牙解码成功
+				{
+					mem_dev.set_para();			//保存蓝牙接收的数据至mem
+					g_ble_suc_flag = 0;	
+					osDelay(200);
+				}
         /* 获取流量值 */
         uint16_t flow = 0;
         if(getFlow(&flow)==0)
@@ -102,32 +113,67 @@ static void water_press_flow_task(void *argument)
             continue;
         }
         waterPressFlowData.viewPressure = pressure;
-
+				if(g_sync_suc || g_heart_bit)		//已同步或正常与蓝牙连接则发送数据
+				{
+					memset(ble_data, 0, sizeof(ble_data));
+					ble_managesys_normaldata_encode(ble_data, VALVE_FLOW, waterPressFlowData.viewPressure);
+					g_sync_suc = 0;
+					g_heart_bit = 0;
+					osDelay(200);
+				}
+				
         float pressureSet = 0;
         sPressureVsFlow_t *pTable = NULL;
         pTable = &mem_dev.data->pressureVsFlow;
 
         bool exeCtl = false;
-        for(int j=0;j<12;j++)
+        for(int j=0;j<sizeof(pTable->cell)/sizeof(pTable->cell[0]);j++)
         {
+            static float lastMaxFlow = 0;
             //判断值是否有效
-            if((pTable->cell[j].startFlow==0xffff)||(pTable->cell[j].endFlow==0xffff)||(pTable->cell[j].pressureVal==0xffff))
+            if((pTable->cell[j].maxFlow==0xffffff)||(pTable->cell[j].pressureVal==0xffff))
             {
                 continue;
             }
-            //在时间范围内
-            if((pressure>=pTable->cell[j].startFlow)&&(pressure<=pTable->cell[j].endFlow))
+            //找到符合条件的值后退出
+            if (flow <= pTable->cell[j].maxFlow)
             {
                 pressureSet = pTable->cell[j].pressureVal;
                 exeCtl = true;
-						   	break;
+                break;
             }
         }
 
         if(exeCtl==false) continue;
 
         /* PI控制 */
-        float err = pressureSet-pressure;
+        float temp = getTolerance();
+				float pressUnder = pressureSet - temp;
+				float pressHigh = pressureSet + temp;
+				float err ;
+				if(pressUnder > pressure)
+				{
+						//err=1;
+						setValveActionWithERR(1,0,flow/1.0);
+						//osDelay(2000);
+						//setValveActionWithERR(0,0,flow/1.0);
+						//osDelay(10000);
+				}
+				else if(pressHigh < pressure)
+				{
+						//err =-1;
+						setValveActionWithERR(-1,0,flow/1.0);
+						//osDelay(2000);
+						//setValveActionWithERR(0,0,flow/1.0);
+						//osDelay(10000);
+				}
+				else if(pressure >= pressUnder && pressure <= pressHigh)
+				{					
+						setValveActionWithERR(0,0,flow/1.0);
+						//osDelay(10000);
+						//s_arriveflag = 1;
+				}
+        /*float err = pressureSet-pressure;
         float openVal;
         float p_val = PID.P*err;
         static float i_val;
@@ -137,16 +183,16 @@ static void water_press_flow_task(void *argument)
 
         if(openVal>100) openVal = 100;
         else if(openVal<0) openVal = 0;
-				
+				*/
 #if defined(USE_I_OUT)
         setValveActionWithOpening(openVal);
 #elif defined(USE_RLY_OUT)
-        setValveActionWithERR(err);
+        //setValveActionWithERR(err,pressureSet,pressure/1.0);
 #endif
 
-        waterPressFlowData.viewOpening = openVal;
+        //waterPressFlowData.viewOpening = openVal;
         
-        osDelay(5000);
+        osDelay(1000);
     }
 }
 
@@ -154,9 +200,9 @@ static void water_press_flow_task(void *argument)
 static void configDev(void)
 {
     /* 配置模拟输入通道1为电流输入模式，用于压力检测*/
-    iv_in_dev.iv_set_mode(eIVInCH1, eIVIn_Mode_I);
-    /* 配置模拟输入通道2为电流输入模式，用于流量检测*/
     iv_in_dev.iv_set_mode(eIVInCH2, eIVIn_Mode_I);
+    /* 配置模拟输入通道2为电流输入模式，用于流量检测*/
+    iv_in_dev.iv_set_mode(eIVInCH1, eIVIn_Mode_I);
     
 #if defined(USE_I_OUT)
     /* 配置模拟输出通道为4-20ma电流输出类型，用于阀门控制 */
@@ -167,13 +213,16 @@ static void configDev(void)
 /* 检测到的电流值到流量值的映射 */
 static uint16_t ImaToFlow(float MA)
 {
-    return (uint16_t)(MA*1);
+    if(MA<4) 
+			return 0;
+		return (uint32_t)(24.69*MA - 94.06)*100.0;
 }
 
 /* 检测到的电流值到压力值的映射 */
 static uint16_t ImaToPressure(float MA)
 {
-    return (uint16_t)(MA*1);
+    if(MA<4) return 0;
+    return (uint16_t)((MA-4)/(20-4)*2*100);//阀前压力值，这里放大了100倍
 }
 
 /* 获取压力值 */
@@ -181,7 +230,7 @@ static uint8_t getPressure(uint16_t *Pressure)
 {
     float Ima = 0;
     /* 获取压力电流值 */
-    if(iv_in_dev.i_in(eIVInCH1, &Ima)!=eIVIn_Ok)
+    if(iv_in_dev.i_in(eIVInCH2, &Ima)!=eIVIn_Ok)
     {
         return 0;
     }
@@ -196,7 +245,7 @@ static uint8_t getFlow(uint16_t *Flow)
 {
     float Ima = 0;
     /* 获取压力电流值 */
-    if(iv_in_dev.i_in(eIVInCH2, &Ima)!=eIVIn_Ok)
+    if(iv_in_dev.i_in(eIVInCH1, &Ima)!=eIVIn_Ok)
     {
         return 0;
     }
@@ -205,4 +254,9 @@ static uint8_t getFlow(uint16_t *Flow)
     
     return 1;
 }
+
+/*float getTolerance(void)
+{
+    return (float)(mem_dev.data->pressureVsFlow.tolerance);
+}*/
 

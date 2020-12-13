@@ -141,29 +141,12 @@ static void water_flow_time_task(void *argument)
 					osDelay(200);
 				}			
         /* 获取进口压力值 */
-				/*if(s_arriveflag)
+				if(getFlow(&flow)==0)
 				{
-					s_timecount ++;		
-					if(s_timecount >= 10)
-					{
-						if(getFlow(&flow)==0)
-						{
-								osDelay(1000);
-								continue;
-						}
-						waterFlowTimeData.viewFlow = flow;
-						s_timecount = 0;
+						osDelay(1000);
+						continue;
 				}
-				}*/
-				//else if(!s_arriveflag)
-				//{
-					if(getFlow(&flow)==0)
-					{
-							osDelay(1000);
-							continue;
-					}
-					waterFlowTimeData.viewFlow = flow;
-				//}
+				waterFlowTimeData.viewFlow = flow;
 				if(g_sync_suc || g_heart_bit)		//已同步或正常与蓝牙连接则发送数据
 				{
 					memset(ble_data, 0, sizeof(ble_data));

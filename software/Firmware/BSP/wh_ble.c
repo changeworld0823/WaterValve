@@ -392,20 +392,18 @@ void set_flow_press(uint8_t *data)
 {
 		uint8_t *buf = data;
 		uint8_t i = 0;
-		uint8_t bufnum					= buf[3] / 6;
+		uint8_t bufnum					= buf[3] / 7;
 		uint8_t current_id = 0;
 		for(i = 0; i < bufnum; i++)
 		{
-				current_id = 4 + (i * 6);
-				uint8_t bufid 					= buf[current_id];
-				uint8_t flow_value 			= (buf[current_id + 1] << 8) + buf[current_id + 2];												
-				uint16_t press_value 		= (buf[current_id + 3] << 8) + buf[current_id + 4];			//压力值
+				current_id = 4 + (i * 7);
+				uint8_t bufid 					= buf[current_id] - 1;
+				uint32_t flow_value 			= (buf[current_id + 1] << 24) + (buf[current_id + 2] << 16) + (buf[current_id + 3] << 8) + buf[current_id + 4];												
+				uint16_t press_value 		= (buf[current_id + 5] << 8) + buf[current_id + 6];			//压力值
 			
-//						//写入mem存储内部
-//				mem_dev.data->pressureVsFlow.cell[bufid].startFlow = begin_time;
-//				mem_dev.data->pressureVsFlow.cell[bufid].endFlow = end_time;
-//				mem_dev.data->pressureVsFlow.cell[bufid].pressureVal = press_value;
-//				mem_dev.set_para();
+						//写入mem存储内部
+				mem_dev.data->pressureVsFlow.cell[bufid].pressureVal = press_value;
+				mem_dev.data->pressureVsFlow.cell[bufid].maxFlow = flow_value;
 		}	
 }
 
@@ -483,6 +481,7 @@ void valve_adjust_range(uint8_t *data)
 		uint8_t *buf = data;
 		mem_dev.data->pressureVsTime.tolerance = buf[COMMAND_VALUE_BIT];
 		mem_dev.data->flowVsTime.tolerance = buf[COMMAND_VALUE_BIT];
+		mem_dev.data->pressureVsFlow.tolerance = buf[COMMAND_VALUE_BIT];
 }
 
 //自动按钮
