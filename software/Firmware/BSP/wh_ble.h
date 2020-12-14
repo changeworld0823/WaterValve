@@ -45,7 +45,7 @@ extern uint8_t g_ble_mode;
 
 #define     BUF_GROUP_LEN					    8
 #define     BUF_GROUP_LEN_FLOW				10
-
+#define     BUF_GROUP_LEN_PRESS_FLOW  7
 #define 	USE_LTE_UART_AS_BLE				    1
 
 enum n_BLE_WORK_MODE

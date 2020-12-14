@@ -540,7 +540,36 @@ void data_sync_proc(uint8_t *syncdata, uint8_t type)
 			#endif
 			break;
 		case FLOW_PRESS_SETTING:
-			buf[PACK_TYPE_BIT]		= SYNC_PRESS_FLOW;
+			buf[PACK_TYPE_BIT]		= SYNC_PRESS_FLOW;	
+			bufid = 0;
+			for(int j = 0; j < sizeof(memData.pressureVsFlow.cell)/sizeof(memData.pressureVsFlow.cell[0]); j++)
+			{
+				if((mem_dev.data->pressureVsFlow.cell[j].pressureVal==QY_DEFAULT_NOMEANING)
+					||(mem_dev.data->pressureVsFlow.cell[j].maxFlow==QY_DEFAULT_FLOW_NOMEANING))
+				{
+					continue;
+				}
+				current_id = 4 + (bufid * BUF_GROUP_LEN_PRESS_FLOW);
+				buf[current_id] = j + 1;							//bufid
+				buf[current_id + 1] = (mem_dev.data->pressureVsFlow.cell[j].maxFlow >> 24) & 0XFF;
+				buf[current_id + 2] = (mem_dev.data->pressureVsFlow.cell[j].maxFlow >> 16) & 0xFF;
+				buf[current_id + 3] = (mem_dev.data->pressureVsFlow.cell[j].maxFlow >> 8) & 0xFF;
+				buf[current_id + 4] =  mem_dev.data->pressureVsFlow.cell[j].maxFlow & 0xFF;
+				buf[current_id + 5] = (mem_dev.data->pressureVsFlow.cell[j].pressureVal >> 8) & 0xFF;
+				buf[current_id + 6] =  mem_dev.data->pressureVsFlow.cell[j].pressureVal & 0xFF;
+				bufid++;
+			}
+			datalen += bufid * BUF_GROUP_LEN_PRESS_FLOW;
+			buf[DATALEN_BIT]		= datalen;
+			buf[DATALEN_BIT + datalen + 1] = 0xFF;
+			buf[DATALEN_BIT + datalen + 2] = 0xFF;
+			buf[DATALEN_BIT + datalen + 3] = 0xFF;
+			memcpy(syncdata, buf, buf[DATALEN_BIT]+7);
+			#if USE_LTE_UART_AS_BLE
+			HAL_UART_Transmit_DMA(&huart1, syncdata, buf[DATALEN_BIT]+7);
+			#else
+			HAL_UART_Transmit_DMA(&huart4, syncdata, buf[DATALEN_BIT]+7);
+			#endif
 			break;
 		case TIME_FLOW_SETTING:
 			buf[PACK_TYPE_BIT]		= SYNC_TIME_FLOW;
