@@ -22,7 +22,7 @@ volatile uint8_t RxBuf_LOCK3 = 0;
 uint8_t RxBuf3[RX_BUFFER_SIZE];
 volatile uint8_t RxBufSize3 = 0;
 
-uint8_t RxDMABuf4[RX_BUFFER_SIZE];
+uint8_t RxDMABuf4[LTE_RX_BUF_SIZE];
 volatile uint8_t DMA_Usart_RxSize4 = 0;
 volatile uint8_t recv_end_flag4 = 0;
 
@@ -34,7 +34,7 @@ uint8_t g_uart1_sendbuf[RX_BUFFER_SIZE];
 uint8_t g_uart1_recvbuf[RX_BUFFER_SIZE];
 uint8_t g_uart3_sendbuf[RX_BUFFER_SIZE];
 uint8_t g_uart3_recvbuf[RX_BUFFER_SIZE];
-uint8_t g_uart4_recvbuf[RX_BUFFER_SIZE];
+uint8_t g_uart4_recvbuf[LTE_RX_BUF_SIZE];
 UART_HandleTypeDef huart4;
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart3;
@@ -104,8 +104,9 @@ void UART_IDLE_Callback(UART_HandleTypeDef *huart)
 				RxBufSize4 += DMA_Usart_RxSize4;
 			}
 			HAL_UART_Receive_DMA(&huart4, RxDMABuf4, RX_BUFFER_SIZE);
-			memset(g_uart4_recvbuf, 0, RX_BUFFER_SIZE);
+			memset(g_uart4_recvbuf, 0, LTE_RX_BUF_SIZE);
 			memcpy(g_uart4_recvbuf, RxDMABuf4, DMA_Usart_RxSize4);
+			decode_lte_recvbuf(g_uart4_recvbuf, DMA_Usart_RxSize4);
 			#if !USE_LTE_UART_AS_BLE
 			decode_ble_recvbuf(g_uart4_recvbuf, DMA_Usart_RxSize4);
 			#endif

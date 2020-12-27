@@ -36,14 +36,15 @@ extern UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN Private defines */
 #define RX_BUFFER_SIZE		255
+#define LTE_RX_BUF_SIZE   255
 extern uint8_t RxDMABuf1[RX_BUFFER_SIZE];
 extern uint8_t RxDMABuf3[RX_BUFFER_SIZE];
-extern uint8_t RxDMABuf4[RX_BUFFER_SIZE];
+extern uint8_t RxDMABuf4[LTE_RX_BUF_SIZE];
 extern uint8_t g_uart1_sendbuf[RX_BUFFER_SIZE];
 extern uint8_t g_uart1_recvbuf[RX_BUFFER_SIZE];
 extern uint8_t g_uart3_sendbuf[RX_BUFFER_SIZE];
 extern uint8_t g_uart3_recvbuf[RX_BUFFER_SIZE];
-extern uint8_t g_uart4_recvbuf[RX_BUFFER_SIZE];
+extern uint8_t g_uart4_recvbuf[LTE_RX_BUF_SIZE];
 
 /* USER CODE END Private defines */
 

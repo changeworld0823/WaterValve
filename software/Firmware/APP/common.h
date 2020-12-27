@@ -17,6 +17,7 @@
 #include "stm32f1xx_hal.h"
 #include "uart.h"
 #include "wh_ble.h"
+#include "wh_lte.h"
 
 #define USE_RLY_OUT
 //#define USE_I_OUT

@@ -23,7 +23,7 @@
 #include "stdio.h" 
 
 #include "common.h"
-
+#include "wh_lte.h"
 #define FIREWARE_TYPE			PRESS_FLOW_SYS
 #define WORKTYPE_PRESSFLOW			TRUE
 
@@ -70,10 +70,11 @@ static void water_press_flow_task(void *argument)
 {
 
     /* 初始化设备 */
-    init_dev();
+    //init_dev();
     /* 配置通道模式或类型 */
-    configDev();
-
+    //configDev();
+		lte_init(0);
+		while(1);
     //日期时间
     sCalendar_t cld;
     for (;;)
