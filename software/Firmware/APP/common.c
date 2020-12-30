@@ -21,10 +21,12 @@
 #include "sound.h"
 #include "buzzer.h"
 #include "stdio.h"
-
+#include "wh_lte.h"
 
 uint8_t g_control_type = CONTROL_TYPE_AUTO;
 uint8_t ble_data[BLE_DATA_BUF_SIZE];
+uint8_t lte_data[BUFSIZE_MAX];
+uint8_t data_buf[BUFSIZE_MIN];
 uint8_t g_state_keep = 0;
 /* 硬件设备初始化 */
 void init_dev(void)
@@ -32,6 +34,14 @@ void init_dev(void)
     eIVInStatus_t ivinStatus;
     eIVOutStatus_t ivoutStatus;
 		sCalendar_t calendar_t;
+		int len = 0;
+		//初始化4G模块,发送信号强度至云端
+		lte_init(AT_GET_MODUAL_STATE);
+		memset(data_buf, 0, sizeof(data_buf));
+		memset(lte_data, 0, sizeof(lte_data));
+		len = snprintf(data_buf, BUFSIZE_MIN, "{params:{CSQ:%d}}", g_lte_csq);
+		len = snprintf(lte_data, BUFSIZE_MAX, "%s%s,1,\"%s\"\r",MQTT_PUB_CMD,PROPERTY_TOPIC,data_buf);
+		HAL_UART_Transmit_DMA(LTE_COM, lte_data, len);
     /* 初始化蜂鸣器 */
     soundInit();
 

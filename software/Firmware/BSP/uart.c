@@ -95,6 +95,7 @@ void UART_IDLE_Callback(UART_HandleTypeDef *huart)
 			memset(g_uart3_recvbuf, 0, RX_BUFFER_SIZE);
 			memcpy(g_uart3_recvbuf, RxDMABuf3, DMA_Usart_RxSize3);
 			memset(RxDMABuf3, 0, RX_BUFFER_SIZE);
+			decode_lte_recvbuf(g_uart3_recvbuf, DMA_Usart_RxSize3);
 		}
 		else if(huart->Instance == UART4){
 			DMA_Usart_RxSize4 = RX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(&hdma_uart4_rx);

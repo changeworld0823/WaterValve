@@ -37,7 +37,11 @@
 #define 	CONTROL_TYPE_AUTO			1
 
 #define 	BUFSIZE_MAX						255
+#define   BUFSIZE_MIN						64
+#define   LTE_COM							(&huart4)
 extern uint8_t ble_data[BUFSIZE_MAX];
+extern uint8_t lte_data[BUFSIZE_MAX];
+extern uint8_t data_buf[BUFSIZE_MIN];
 extern uint8_t g_control_type;
 extern uint8_t g_state_keep;
 void init_dev(void);

@@ -70,11 +70,9 @@ static void water_press_flow_task(void *argument)
 {
 
     /* 初始化设备 */
-    //init_dev();
+    init_dev();
     /* 配置通道模式或类型 */
-    //configDev();
-		lte_init(0);
-		while(1);
+    configDev();
     //日期时间
     sCalendar_t cld;
     for (;;)
@@ -122,7 +120,11 @@ static void water_press_flow_task(void *argument)
 					g_heart_bit = 0;
 					osDelay(200);
 				}
-				
+				memset(data_buf, 0, sizeof(data_buf));
+				memset(lte_data, 0, sizeof(lte_data));
+				snprintf(data_buf, BUFSIZE_MIN, "{params:{Press_Out:%d,Flow:%d}}", pressure,flow);
+				snprintf(lte_data, BUFSIZE_MAX, "%s%s,1,\"%s\"\r",MQTT_PUB_CMD,PROPERTY_TOPIC,data_buf);
+				HAL_UART_Transmit_DMA(&huart4, lte_data, strlen(lte_data));
         float pressureSet = 0;
         sPressureVsFlow_t *pTable = NULL;
         pTable = &mem_dev.data->pressureVsFlow;
@@ -156,23 +158,22 @@ static void water_press_flow_task(void *argument)
 				{
 						//err=1;
 						setValveActionWithERR(1,0,flow/1.0);
-						//osDelay(2000);
-						//setValveActionWithERR(0,0,flow/1.0);
-						//osDelay(10000);
+						osDelay(2000);
+						setValveActionWithERR(0,0,flow/1.0);
+						osDelay(10000);
 				}
 				else if(pressHigh < pressure)
 				{
 						//err =-1;
 						setValveActionWithERR(-1,0,flow/1.0);
-						//osDelay(2000);
-						//setValveActionWithERR(0,0,flow/1.0);
-						//osDelay(10000);
+						osDelay(2000);
+						setValveActionWithERR(0,0,flow/1.0);
+						osDelay(10000);
 				}
 				else if(pressure >= pressUnder && pressure <= pressHigh)
 				{					
 						setValveActionWithERR(0,0,flow/1.0);
-						//osDelay(10000);
-						//s_arriveflag = 1;
+						osDelay(10000);
 				}
         /*float err = pressureSet-pressure;
         float openVal;

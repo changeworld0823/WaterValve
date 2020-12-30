@@ -22,8 +22,11 @@ enum n_LTE_MACHINE_STATE
 		AT_SET_MQTT_PUB,
 		AT_SET_MQTT_DISCON,
 		AT_WAIT_OK,
+		AT_CMD_COMPLETE = 99,
 };
 
+#define PROPERTY_TOPIC "/sys/a1w01lP5lmB/valve_manager1/thing/event/property/post"
+#define MQTT_PUB_CMD	 "AT+CLOUDPUB="
 extern uint8_t g_rec_ok;
 extern uint8_t g_lte_csq;
 extern uint8_t lte_init(uint8_t state);
