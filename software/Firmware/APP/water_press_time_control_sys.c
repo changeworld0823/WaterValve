@@ -180,11 +180,13 @@ static void water_press_time_task(void *argument)
 								g_sync_suc = 0;
 								g_heart_bit = 0;
 						}
+						#if LTE_WORK_ENABLE
 						memset(data_buf, 0, sizeof(data_buf));
 						memset(lte_data, 0, sizeof(lte_data));
 						snprintf(data_buf, BUFSIZE_MIN, "{params:{Press_Out:%d,Press_Int:%d}}", pressureOut,pressureIn);
 						snprintf(lte_data, BUFSIZE_MAX, "%s%s,1,\"%s\"\r",MQTT_PUB_CMD,PROPERTY_TOPIC,data_buf);
 						HAL_UART_Transmit_DMA(&huart4, lte_data, strlen(lte_data));
+						#endif
 						/* 与压力时间数组比较 
 							 注意：wday是从1开始的，1代表周日，2代表周一。。。 
 						*/	

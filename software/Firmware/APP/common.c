@@ -34,14 +34,15 @@ void init_dev(void)
     eIVInStatus_t ivinStatus;
     eIVOutStatus_t ivoutStatus;
 		sCalendar_t calendar_t;
-		int len = 0;
+#if LTE_WORK_ENABLE
 		//初始化4G模块,发送信号强度至云端
 		lte_init(AT_GET_MODUAL_STATE);
 		memset(data_buf, 0, sizeof(data_buf));
 		memset(lte_data, 0, sizeof(lte_data));
-		len = snprintf(data_buf, BUFSIZE_MIN, "{params:{CSQ:%d}}", g_lte_csq);
-		len = snprintf(lte_data, BUFSIZE_MAX, "%s%s,1,\"%s\"\r",MQTT_PUB_CMD,PROPERTY_TOPIC,data_buf);
-		HAL_UART_Transmit_DMA(LTE_COM, lte_data, len);
+	snprintf(data_buf, BUFSIZE_MIN, "{params:{CSQ:%d,state:1}}", g_lte_csq);
+		snprintf(lte_data, BUFSIZE_MAX, "%s%s,1,\"%s\"\r",MQTT_PUB_CMD,PROPERTY_TOPIC,data_buf);
+		HAL_UART_Transmit_DMA(LTE_COM, lte_data, strlen(lte_data));
+#endif
     /* 初始化蜂鸣器 */
     soundInit();
 
