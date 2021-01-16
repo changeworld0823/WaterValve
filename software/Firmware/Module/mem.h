@@ -42,6 +42,8 @@ typedef struct
 {
     struct PressureVsTimeItem cell[2][12]; /* cell[0]工作日，cell[1]周末，周末最多12个时间段设置 */
     uint16_t tolerance;                    /* 允许的误差值 */
+		//uint16_t operateTime;                 /* 操作时间 */
+		//uint16_t stopTime;                    /* 停止时间 */
 } sPressureVsTime_t;
 
 /* 流量-时间数组 */
@@ -55,6 +57,8 @@ typedef struct
 {
     struct FlowVsTimeItem cell[2][12];  /* cell[0]工作日，cell[1]周末, 最多12个时间段设置 */
     uint16_t tolerance;                 /* 允许的误差值 */
+		//uint16_t operateTime;                 /* 操作时间 */
+		//uint16_t stopTime;                    /* 停止时间 */
 } sFlowVsTime_t;
 
 /* 流量-压力数组 */
@@ -68,6 +72,8 @@ typedef struct
 {
     struct PressureVsFlowItem cell[6];  /* 6涓祦閲忔璁剧疆 */
     uint16_t tolerance;                 /* 鍏佽鐨勮宸€?*/
+		//uint16_t operateTime;                 /* 操作时间 */
+		//uint16_t stopTime;                    /* 停止时间 */
 } sPressureVsFlow_t;
 
 /* 存储的变量 step 1*/
@@ -112,6 +118,8 @@ typedef enum {
 #define DEFAULT_PressureVsFlowSet_maxFlow_VAL      QY_DEFAULT_FLOW_NOMEANING    /* 鏃犳晥鍊?*/
 #define DEFAULT_PressureVsFlowSet_tolerance_VAL    2                       /* Kpa锛烳pa锛熷崟浣嶆牴鎹紶鎰熷櫒鑰屽畾 */
 
+#define DEFAULT_OPERATE_TIME_VAL                   (2*1000)
+#define DEFAULT_STOP_TIME_VAL                      (10*1000)
 /* 存储设备结构体 */
 typedef struct
 {

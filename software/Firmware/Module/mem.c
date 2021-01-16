@@ -180,6 +180,8 @@ eMemStatus_t memForceSetToFactory(void)
         }
     }
     memData.pressureVsTime.tolerance = DEFAULT_PressueVsTimeSet_tolerance_VAL;
+		//memData.pressureVsTime.operateTime = DEFAULT_OPERATE_TIME_VAL;
+		//memData.pressureVsTime.stopTime = DEFAULT_STOP_TIME_VAL;
     if(data_op(eMemAddr_PressueVsTimeSet, &memData.pressureVsTime)!=eMem_Ok)
     {
         return eMem_WriteFail;
@@ -200,6 +202,8 @@ eMemStatus_t memForceSetToFactory(void)
         }
     }
     memData.flowVsTime.tolerance = DEFAULT_FlowVsTimeSet_tolerance_VAL;
+		//memData.flowVsTime.operateTime = DEFAULT_OPERATE_TIME_VAL;
+		//memData.flowVsTime.stopTime = DEFAULT_STOP_TIME_VAL;
     if(data_op(eMemAddr_FlowVsTimeSet, &memData.flowVsTime)!=eMem_Ok)
     {
         return eMem_WriteFail;
@@ -214,6 +218,8 @@ eMemStatus_t memForceSetToFactory(void)
         memData.pressureVsFlow.cell[j].maxFlow    = DEFAULT_PressureVsFlowSet_maxFlow_VAL;
     }
     memData.pressureVsFlow.tolerance = DEFAULT_PressureVsFlowSet_tolerance_VAL;
+		//memData.pressureVsFlow.operateTime = DEFAULT_OPERATE_TIME_VAL;
+		//memData.pressureVsFlow.stopTime = DEFAULT_PressueVsTimeSet_tolerance_VAL;
     if(data_op(eMemAddr_PressureVsFlowSet, &memData.pressureVsFlow)!=eMem_Ok)
     {
         return eMem_WriteFail;

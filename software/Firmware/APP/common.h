@@ -28,7 +28,7 @@
 #define FALSE					0
 #define TRUE					1
  
-#define   LTE_WORK_ENABLE				1
+#define   LTE_WORK_ENABLE				0
 
 #define		VALVE_STATE_UP				1
 #define   VALVE_STATE_KEEP			0

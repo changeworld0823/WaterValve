@@ -89,8 +89,12 @@ enum n_BLE_COMMAND_TYPE{
 		HALF_AUTORUN_BUTTON,
 		DATA_SYNC_BUTTON,
 		TIME_SYNC_BUTTON,
+	  OPERATE_TIME_SETTING,
+		STOP_TIME_SETTING,
 };
 
+extern uint16_t g_operate_time;
+extern uint16_t g_stop_time;
 #if WORKTYPE_PUMPCONTROL
 extern uint16_t g_pump_timeout;
 extern uint16_t g_pump_closedelay;

@@ -31,6 +31,8 @@ void close_valve_timeout(uint8_t *data);
 void mannul_valve_ctrl(uint8_t *data);
 void data_sync_button(uint8_t *data);
 void time_sync_button(uint8_t *data);
+void operate_time_set(uint8_t *data);
+void stop_time_set(uint8_t *data);
 //extern UART_HandleTypeDef huart3;
 void decode_ble_recvbuf(uint8_t *data, uint8_t datasize)
 {
@@ -256,6 +258,12 @@ void ble_rawdata_decode(uint8_t *data, uint8_t datasize)			//蓝牙透传数据解码
 									break;
 							case TIME_SYNC_BUTTON:					//时间同步按钮
 								time_sync_button(buf);
+								break;
+							case OPERATE_TIME_SETTING:			//操作时间
+								operate_time_set(buf);
+								break;
+							case STOP_TIME_SETTING:					//停止时间
+								stop_time_set(buf);
 								break;
 							default:
 									break;
@@ -629,6 +637,25 @@ void time_sync_button(uint8_t *data)
 	g_snc_cld.min 	=  buf[DATALEN_BIT + 6];
 	g_snc_cld.wday 	=  buf[DATALEN_BIT + 7];
 	g_sync_time = 1;
+}
+//操作/停止时间设置
+uint16_t g_operate_time = 2000;
+uint16_t g_stop_time = 10*1000;
+void operate_time_set(uint8_t *data)
+{
+	uint8_t *buf = data;
+	g_operate_time = buf[COMMAND_VALUE_BIT] * 1000;
+	//mem_dev.data->pressureVsTime.operateTime = buf[COMMAND_VALUE_BIT] * 1000;
+	//mem_dev.data->flowVsTime.operateTime = buf[COMMAND_VALUE_BIT] * 1000;
+	//mem_dev.data->pressureVsFlow.operateTime = buf[COMMAND_VALUE_BIT] * 1000;
+}
+void stop_time_set(uint8_t *data)
+{
+	uint8_t *buf = data;
+	g_stop_time = buf[COMMAND_VALUE_BIT] * 1000;
+	//mem_dev.data->pressureVsTime.stopTime = buf[COMMAND_VALUE_BIT] * 1000;
+	//mem_dev.data->flowVsTime.stopTime = buf[COMMAND_VALUE_BIT] * 1000;
+	//mem_dev.data->pressureVsFlow.stopTime = buf[COMMAND_VALUE_BIT] * 1000;
 }
 //数据同步按钮
 void data_sync_button(uint8_t *data)

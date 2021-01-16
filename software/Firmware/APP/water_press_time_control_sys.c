@@ -91,6 +91,8 @@ static void water_press_time_task(void *argument)
     uint8_t ble_data[BLE_CMD_BUF_SIZE];
 		uint16_t pressureIn = 0;
 		uint16_t pressureOut=0;
+		uint16_t operate_time = 2000;
+		uint16_t stop_time = 10000;
 	static uint8_t count = 0;
     /* 初始化设备 */
     init_dev();
@@ -236,18 +238,32 @@ static void water_press_time_task(void *argument)
 						}
 						/* PI控制 */
 						float temp= getTolerance();
+//						operate_time = g_operate_time;//mem_dev.data->pressureVsTime.operateTime;
+//						stop_time = g_stop_time;//mem_dev.data->pressureVsTime.stopTime;
 						float pressUnder = pressureSet-temp;
 						float pressHigh = pressureSet+temp;
 						float err ;
 						if(pressUnder > pressureOut)
 						{
-								err=1;
+								//err = 1;
+								setValveActionWithERR(1,pressureSet,pressureSet/1.0);
+								osDelay(g_operate_time);
+								setValveActionWithERR(0,pressureSet,pressureSet/1.0);
+								osDelay(g_stop_time);
 						}
 						if(pressHigh < pressureOut){
-							err =-1;
+						    //err =-1;
+								setValveActionWithERR(-1,0,pressureSet/1.0);
+								osDelay(g_operate_time);
+								setValveActionWithERR(0,0,pressureSet/1.0);
+								osDelay(g_stop_time);
 						}
-						if(pressureOut >= pressUnder && pressureOut<=pressHigh) 
-							err = 0;
+						if(pressureOut >= pressUnder && pressureOut<=pressHigh)
+						{ 
+							//err = 0;
+							setValveActionWithERR(0,0,pressureSet/1.0);
+							osDelay(g_operate_time);
+						}
 						/*float openVal;
 						float p_val = PID.P*err;
 						static float i_val;
@@ -268,7 +284,7 @@ static void water_press_time_task(void *argument)
 										count = 0;
 								}
 						}else{*/
-            setValveActionWithERR(err,pressureSet,pressureOut/1.0);
+            //setValveActionWithERR(err,pressureSet,pressureOut/1.0);
 						//}
 #endif
 
@@ -279,7 +295,7 @@ static void water_press_time_task(void *argument)
 					default:break;
 				}
         
-        osDelay(3000);
+        osDelay(1000);
     }
 }
 

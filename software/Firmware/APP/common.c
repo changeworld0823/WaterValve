@@ -106,7 +106,7 @@ void setValveActionWithOpening(float Opening)
 float getTolerance(void)
 {
 		
-    return (float)(mem_dev.data->pressureVsTime.tolerance);
+    return ((float)(mem_dev.data->pressureVsTime.tolerance));
 }
 
 /* ÉèÖÃ¿ª¶È */
