@@ -14,26 +14,29 @@ void decode_lte_recvbuf(uint8_t *data, uint8_t datasize)
 {
 		uint8_t *buf = data;
 		uint8_t *temp, *csq;
-		if(strstr(buf, "OK") != NULL)
+		if(strstr(buf, "OK") != NULL)			//adjust send AT command is right
 		{
 				g_rec_ok = 1;
 		}
-		if(strstr(buf, "CSQ: ") != NULL)
+		if(strstr(buf, "CSQ: ") != NULL)	//get the lte signal quality
 		{
 			  temp = strtok(buf, "\r\n+CSQ: ");
 				csq = strtok(temp, ",");
 				g_lte_csq = atoi(csq);
 		}
-		if(strstr(buf, "ERROR") != NULL)
+		if(strstr(buf, "ERROR") != NULL)	//AT command return err code
 		{
 				g_get_err = 1;
 		}
-		if(strstr(buf, "+MQTTDISCONNED: Link Closed") != NULL)
+		if(strstr(buf, "+MQTTDISCONNED: Link Closed") != NULL)	//ali cloud connect success
 		{
 				g_connect_cloud_ok = 1;
 		}
-		if(strstr(buf,"+CLOUDHDAUTH: OK") != NULL){
+		if(strstr(buf,"+CLOUDHDAUTH: OK") != NULL){			//decive hardware auth success
 				g_get_auth_ok = 1;
+		}
+		if(strstr(buf, "+CLOUDPUBLISH:") != NULL){			//get device publish topic
+				//decode publish buf
 		}
 }
 
@@ -42,10 +45,10 @@ uint8_t lte_init(uint8_t state)
 	uint8_t current_state;
 	uint8_t test[256] = {0};
 	uint8_t len = 0;
-	uint8_t jsonbuf[256] = {0};
 	while(state < AT_CMD_COMPLETE)
 	{
 		uint8_t *data = NULL;
+		memset(test, 0, sizeof(test));
 		switch(state)
 		{
 			case AT_WAIT_OK:
@@ -115,19 +118,25 @@ uint8_t lte_init(uint8_t state)
 				state = AT_WAIT_OK;
 				break;
 			case AT_SET_MQTT_PARAM:
-				data = "AT+MQTTCONNPARAM=\"1|securemode=3,signmethod=hmacsha1|\",\"valve_manager1&a1w01lP5lmB\",\"68CF51E5D038193258D7A97B43B6342BB96995BD\"\r";
+				snprintf(test, sizeof(test), "AT+MQTTCONNPARAM=\"1|securemode=3,signmethod=hmacsha1|\",\"%s&%s\",\"%s\"\r",DEVICE_NAME, PRODUCT_KEY, HASH_KEY);
+				//data = "AT+MQTTCONNPARAM=\"1|securemode=3,signmethod=hmacsha1|\",\"valve_manager1&a1w01lP5lmB\",\"68CF51E5D038193258D7A97B43B6342BB96995BD\"\r";
+				data = test;
 				HAL_UART_Transmit_DMA(LTE_COM, data, strlen(data));
 				current_state = AT_SET_MQTT_PARAM;
 				state = AT_WAIT_OK;
 				break;
 			case AT_SET_MQTT_CONNC:
-				data = "AT+MQTTCONN=\"a1w01lP5lmB.iot-as-mqtt.cn-shanghai.aliyuncs.com:1883\",0,120\r";
+				snprintf(test, sizeof(test), "AT+MQTTCONN=\"%s.iot-as-mqtt.cn-shanghai.aliyuncs.com:1883\",0,120\r", PRODUCT_KEY);
+				data = test;
+				//data = "AT+MQTTCONN=\"a1w01lP5lmB.iot-as-mqtt.cn-shanghai.aliyuncs.com:1883\",0,120\r";
 				HAL_UART_Transmit_DMA(LTE_COM, data, strlen(data));
 			  current_state = AT_SET_MQTT_CONNC;
 				state = AT_WAIT_OK;
 				break;
 			case AT_SET_CLOUD_HDAUTH:
-				data = "AT+CLOUDHDAUTH=a1w01lP5lmB,valve_manager1,a6511307c1ec63bf2edaf42fa34f0343\r";
+				snprintf(test, sizeof(test), "AT+CLOUDHDAUTH=%s,%s,%s\r", PRODUCT_KEY, DEVICE_NAME, DEVICE_SECRECT);
+				data = test;
+				//data = "AT+CLOUDHDAUTH=a1w01lP5lmB,valve_manager1,a6511307c1ec63bf2edaf42fa34f0343\r";
 				HAL_UART_Transmit_DMA(LTE_COM, data, strlen(data));
 				current_state = AT_SET_CLOUD_HDAUTH;
 				state = AT_WAIT_OK;
@@ -139,7 +148,9 @@ uint8_t lte_init(uint8_t state)
 				state = AT_WAIT_OK;
 				break;
 			case AT_SET_MQTT_SUB:
-				data = "AT+CLOUDSUB=\"/a1w01lP5lmB/valve_manager1/user/setparams\",1\r";
+				snprintf(test, sizeof(test), "AT+CLOUDSUB=\"/sys/%s/time_press_device/thing/service/property/set\",1\r", PRODUCT_KEY);
+				data = test;
+				//data = "AT+CLOUDSUB=\"/a1w01lP5lmB/valve_manager1/user/setparams\",1\r";
 				HAL_UART_Transmit_DMA(LTE_COM, data, strlen(data));
 				current_state = AT_SET_MQTT_SUB;
 				state = AT_WAIT_OK;

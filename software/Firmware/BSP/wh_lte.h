@@ -4,6 +4,7 @@
 #include "main.h"
 #include <string.h>
 #include "stm32f1xx_hal.h"
+#include "common.h"
 
 enum n_LTE_MACHINE_STATE
 {
@@ -25,8 +26,12 @@ enum n_LTE_MACHINE_STATE
 		AT_CMD_COMPLETE = 99,
 };
 
-#define PROPERTY_TOPIC "/sys/a1w01lP5lmB/valve_manager1/thing/event/property/post"
-#define MQTT_PUB_CMD	 "AT+CLOUDPUB="
+#define PROPERTY_TOPIC 	"/sys/a1w01lP5lmB/valve_manager1/thing/event/property/post"
+#define MQTT_PUB_CMD	 	"AT+CLOUDPUB="
+#define PRODUCT_KEY			"a18ioT3HTaf"
+#define DEVICE_NAME			"BwyT8UGbGdQcv9ae6nep"
+#define DEVICE_SECRECT	"0898b2aaa239ffa5db35c2d19c3a7e47"
+#define HASH_KEY				"68CF51E5D038193258D7A97B43B6342BB96995BD"
 extern uint8_t g_rec_ok;
 extern uint8_t g_lte_csq;
 extern uint8_t lte_init(uint8_t state);
