@@ -29,7 +29,7 @@
 #define TRUE					1
  
 #define   LTE_WORK_ENABLE				0			/*4G work state changeable*/
-#define   EN_LTE_DECODE         0     /*4G enable decode buf*/
+#define   EN_LTE_DECODE         1     /*4G enable decode buf*/
 
 #define		VALVE_STATE_UP				1
 #define   VALVE_STATE_KEEP			0

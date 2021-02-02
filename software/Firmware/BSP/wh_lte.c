@@ -10,6 +10,190 @@ static uint8_t g_get_err = 0;
 static uint8_t g_connect_cloud_ok = 0;
 static uint8_t g_get_auth_ok = 0;
 void lte_json_encode(uint8_t *data);
+
+void decode_weekdaypress(uint8_t *data)
+{
+		uint8_t *temp = data;
+		uint8_t rec = 0;
+		uint16_t value;
+		rec = sscanf(temp, "\"params\":{\"weekday_press1\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekday_press2\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekday_press3\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekday_press4\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekday_press5\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekday_press6\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekday_press7\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekday_press8\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekday_press9\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekday_press10\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekday_press11\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekday_press12\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+}
+
+void decode_weekdaybegintime(uint8_t *data)
+{
+
+}
+void decode_weekdayendtime(uint8_t *data)
+{
+
+}
+void decode_weekendpress(uint8_t *data)
+{
+		uint8_t *temp = data;
+		uint8_t rec = 0;
+		uint16_t value;
+		rec = sscanf(temp, "\"params\":{\"weekend_press1\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekend_press2\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekend_press3\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekend_press4\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekend_press5\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekend_press6\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekend_press7\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekend_press8\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekend_press9\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekend_press10\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekend_press11\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+		rec = sscanf(temp, "\"params\":{\"weekend_press12\":%d}", &value);
+		if(rec == 1) //the string has the target,save value
+		{
+				
+		}
+}
+void decode_weekendbegintime(uint8_t *data)
+{
+
+}
+
+void decode_weekendendtime(uint8_t *data)
+{
+
+}
+void decode_lte_publish(uint8_t *data, uint8_t datasize)
+{
+		uint8_t *buf = data;
+		uint8_t *temp;
+		uint8_t *savep;
+		uint8_t topic_name_right = 0, rec = -1;
+		temp = strtok_r(buf, ",", &savep);
+		while(temp != NULL)
+		{
+				//get the topic name
+				if(strstr(temp, "/thing/service/property/set") != NULL)
+				{
+						topic_name_right = 1;
+				}
+				//get the proerty value
+				if((strstr(temp, "params") != NULL) && (topic_name_right == 1))
+				{
+						decode_weekdaypress(temp);
+						decode_weekdaybegintime(temp);
+						decode_weekdayendtime(temp);
+						decode_weekendpress(temp);
+						decode_weekendbegintime(temp);
+						decode_weekendendtime(temp);
+				}
+				temp = strtok_r(NULL, ",", &savep);
+		}
+	/*if(strstr(buf, "+CLOUDPUBLISH:0") != NULL 
+		&& strstr(buf , "/thing/service/property/set") != NULL)		//topic name:/thing/service/property/set
+	{
+			
+	}*/
+}
+
 void decode_lte_recvbuf(uint8_t *data, uint8_t datasize)
 {
 		uint8_t *buf = data;
@@ -35,9 +219,11 @@ void decode_lte_recvbuf(uint8_t *data, uint8_t datasize)
 		if(strstr(buf,"+CLOUDHDAUTH: OK") != NULL){			//decive hardware auth success
 				g_get_auth_ok = 1;
 		}
+		#if EN_LTE_DECODE
 		if(strstr(buf, "+CLOUDPUBLISH:") != NULL){			//get device publish topic
-				//decode publish buf
+				decode_lte_publish(buf, datasize);
 		}
+		#endif
 }
 
 uint8_t lte_init(uint8_t state)
